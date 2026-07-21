@@ -117,10 +117,10 @@ function ChatPage() {
       const convId = await ensureConversation();
       await supabase.from("messages").insert({
         conversation_id: convId,
-        user_id: userId,
+        user_id: userId!,
         role: "user",
         content: userMsg.content,
-        attachments: userMsg.attachments ?? [],
+        attachments: (userMsg.attachments ?? []) as unknown as never,
       });
       if (nextMessages.length === 1) {
         await supabase.from("conversations").update({ title: text.slice(0, 60) || "Conversa com imagens" }).eq("id", convId);
@@ -144,7 +144,7 @@ function ChatPage() {
       setMessages((prev) => [...prev, assistantMsg]);
       await supabase.from("messages").insert({
         conversation_id: convId,
-        user_id: userId,
+        user_id: userId!,
         role: "assistant",
         content: assistantMsg.content,
       });
