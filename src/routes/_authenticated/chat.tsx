@@ -1,5 +1,5 @@
 import { createFileRoute, useServerFn } from "@tanstack/react-start";
-import { createFileRoute as _crf } from "@tanstack/react-router";
+import { createFileRoute as _crf, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/ai-chat.functions";
