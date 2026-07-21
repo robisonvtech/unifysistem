@@ -3,6 +3,7 @@
  * Supports: **bold**, *italic*, `code`, headings (#..###), lists (-, *, 1.), paragraphs, line breaks.
  * Zero dependencies — keeps the bundle small.
  */
+import type React from "react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -10,8 +11,8 @@ interface Props {
   className?: string;
 }
 
-function inline(text: string): (string | JSX.Element)[] {
-  const out: (string | JSX.Element)[] = [];
+function inline(text: string): (string | React.ReactNode)[] {
+  const out: (string | React.ReactNode)[] = [];
   const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
   let last = 0;
   let m: RegExpExecArray | null;
@@ -30,7 +31,7 @@ function inline(text: string): (string | JSX.Element)[] {
 
 export default function MarkdownLite({ content, className }: Props) {
   const lines = content.split("\n");
-  const blocks: JSX.Element[] = [];
+  const blocks: React.ReactNode[] = [];
   let list: { ordered: boolean; items: string[] } | null = null;
   let paragraph: string[] = [];
   let k = 0;

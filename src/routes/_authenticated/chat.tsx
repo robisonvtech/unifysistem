@@ -305,7 +305,7 @@ function MessageBubble({ m }: { m: UIMessage }) {
             ))}
           </div>
         )}
-        {isUser ? <p className="whitespace-pre-wrap">{m.content}</p> : <ReactMarkdownLite content={m.content} />}
+        {isUser ? <p className="whitespace-pre-wrap">{m.content}</p> : <MarkdownLite content={m.content} />}
       </div>
     </div>
   );
