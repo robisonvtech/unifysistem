@@ -1,5 +1,5 @@
-import { createFileRoute, useServerFn } from "@tanstack/react-start";
-import { createFileRoute as _crf, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/ai-chat.functions";
@@ -9,10 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import ReactMarkdownLite from "@/components/MarkdownLite";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _ = _crf;
+import MarkdownLite from "@/components/MarkdownLite";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
