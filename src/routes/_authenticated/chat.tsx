@@ -222,7 +222,40 @@ function ChatPage() {
             {(state === "idle" || state === "listening" || state === "learning") && "IA especialista em reparo de celulares"}
           </p>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-full px-3 text-xs">
+              <GraduationCap className="h-3.5 w-3.5" />
+              {SKILL_LABEL[skillLevel]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Nível de resposta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={skillLevel} onValueChange={(v) => updateSkill(v as SkillLevel)}>
+              <DropdownMenuRadioItem value="auto">
+                <div className="flex flex-col">
+                  <span className="text-sm">Automático</span>
+                  <span className="text-xs text-muted-foreground">Unify detecta seu nível</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="beginner">
+                <div className="flex flex-col">
+                  <span className="text-sm">Iniciante</span>
+                  <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="advanced">
+                <div className="flex flex-col">
+                  <span className="text-sm">Avançado</span>
+                  <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+                </div>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
+
 
       {/* Messages */}
       <div className="flex-1 space-y-4 px-4 py-4">
