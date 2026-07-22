@@ -175,8 +175,10 @@ function ChatPage() {
           content: m.content,
           attachments: m.attachments,
         })),
+        skillLevel,
       };
       const result = await send({ data: payload });
+
 
       const assistantMsg: UIMessage = {
         id: crypto.randomUUID(),
