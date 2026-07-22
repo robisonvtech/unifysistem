@@ -6,10 +6,11 @@ import { sendChat } from "@/lib/ai-chat.functions";
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,9 @@ const SKILL_LABEL: Record<SkillLevel, string> = {
 };
 
 export const Route = createFileRoute("/_authenticated/chat")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    c: typeof s.c === "string" ? s.c : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Chat — RepairAI" },
@@ -61,6 +65,7 @@ const QUICK_ACTIONS = [
 ];
 
 function ChatPage() {
+  const search = Route.useSearch();
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -72,6 +77,7 @@ function ChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const send = useServerFn(sendChat);
+  const { canPremium } = useEntitlements();
 
   useEffect(() => {
     (async () => {
@@ -91,7 +97,34 @@ function ChatPage() {
     textareaRef.current?.focus();
   }, []);
 
+  // Load an existing conversation when navigated with ?c=<id>
+  useEffect(() => {
+    const cid = search.c;
+    if (!cid || cid === conversationId) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, role, content, attachments, created_at")
+        .eq("conversation_id", cid)
+        .order("created_at", { ascending: true });
+      if (error) return toast.error("Não foi possível abrir a conversa.");
+      setConversationId(cid);
+      setMessages(
+        (data ?? []).map((m) => ({
+          id: m.id,
+          role: m.role as "user" | "assistant",
+          content: m.content,
+          attachments: Array.isArray(m.attachments) ? (m.attachments as unknown as Attachment[]) : undefined,
+        })),
+      );
+    })();
+  }, [search.c, conversationId]);
+
   async function updateSkill(next: SkillLevel) {
+    if (next === "advanced" && !canPremium) {
+      toast.error("Modo Avançado é exclusivo Pro (R$ 19,90/mês).");
+      return;
+    }
     setSkillLevel(next);
     if (!userId) return;
     const { error } = await supabase
@@ -100,6 +133,7 @@ function ChatPage() {
       .eq("id", userId);
     if (error) toast.error("Não foi possível salvar a preferência.");
   }
+
 
 
   useEffect(() => {
@@ -244,10 +278,13 @@ function ChatPage() {
                   <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
                 </div>
               </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="advanced">
-                <div className="flex flex-col">
-                  <span className="text-sm">Avançado</span>
-                  <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+              <DropdownMenuRadioItem value="advanced" disabled={!canPremium}>
+                <div className="flex flex-1 items-start justify-between gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-sm">Avançado</span>
+                    <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+                  </div>
+                  {!canPremium && <Lock className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />}
                 </div>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>

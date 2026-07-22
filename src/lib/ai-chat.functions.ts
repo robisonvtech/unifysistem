@@ -98,12 +98,36 @@ interface ChatInput {
 
 export const sendChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => input as ChatInput)
-  .handler(async ({ data }) => {
+  .inputValidator((input: unknown) => {
+    const d = input as ChatInput;
+    if (!d || !Array.isArray(d.messages)) throw new Error("Requisição inválida.");
+    if (d.messages.length === 0 || d.messages.length > 60) throw new Error("Conversa muito longa.");
+    for (const m of d.messages) {
+      if (m.role !== "user" && m.role !== "assistant") throw new Error("Papel inválido.");
+      if (typeof m.content !== "string" || m.content.length > 8000) throw new Error("Mensagem muito longa.");
+      if (m.attachments && m.attachments.length > 4) throw new Error("Máximo de 4 imagens.");
+    }
+    const skill = d.skillLevel ?? "auto";
+    if (!["auto", "beginner", "advanced"].includes(skill)) throw new Error("Nível inválido.");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
-    const skill: SkillLevel = data.skillLevel ?? "auto";
+    let skill: SkillLevel = data.skillLevel ?? "auto";
+
+    // Server-side paywall: only admin or Pro subscribers can use Advanced mode.
+    if (skill === "advanced") {
+      const { supabase, userId } = context;
+      const [{ data: roles }, { data: profile }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin"),
+        supabase.from("profiles").select("subscription_status").eq("id", userId).maybeSingle(),
+      ]);
+      const isAdmin = (roles ?? []).length > 0;
+      const isPro = profile?.subscription_status === "pro";
+      if (!isAdmin && !isPro) skill = "auto";
+    }
 
     const messages = [
       { role: "system", content: buildSystemPrompt(skill) },

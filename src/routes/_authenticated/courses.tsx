@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { GraduationCap, Lock, Check } from "lucide-react";
+import { GraduationCap, Lock, Check, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useEntitlements } from "@/hooks/useEntitlements";
 
 export const Route = createFileRoute("/_authenticated/courses")({
   head: () => ({
@@ -40,6 +41,8 @@ const FEATURES = [
 ];
 
 function CoursesPage() {
+  const { canPremium, isAdmin } = useEntitlements();
+
   return (
     <div className="px-4 py-4">
       <header className="mb-4 flex items-center gap-3">
@@ -52,30 +55,39 @@ function CoursesPage() {
         </div>
       </header>
 
-      {/* Subscription CTA */}
-      <div className="mb-5 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary to-[color:var(--primary-glow)] p-5 text-primary-foreground shadow-lg">
-        <div className="flex items-start justify-between">
-          <div>
-            <Badge className="mb-2 bg-white/20 text-white hover:bg-white/20">Pro Mensal</Badge>
-            <h2 className="text-xl font-bold leading-tight">Acesso total à plataforma</h2>
-            <p className="mt-1 text-sm text-white/80">R$ 49,90/mês · cancele quando quiser</p>
+      {canPremium ? (
+        <div className="mb-5 flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+          <Crown className="h-5 w-5 text-primary" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold">{isAdmin ? "Acesso administrador" : "Assinatura Pro ativa"}</p>
+            <p className="text-xs text-muted-foreground">Todos os cursos e o Modo Avançado liberados.</p>
           </div>
         </div>
-        <ul className="mt-4 space-y-1.5 text-sm">
-          {FEATURES.map((f) => (
-            <li key={f} className="flex items-center gap-2">
-              <Check className="h-4 w-4 shrink-0" /> {f}
-            </li>
-          ))}
-        </ul>
-        <Button
-          variant="secondary"
-          className="mt-4 w-full bg-white text-primary hover:bg-white/90"
-          onClick={() => toast.info("Assinatura em breve — vamos avisá-lo por e-mail.")}
-        >
-          Assinar Pro
-        </Button>
-      </div>
+      ) : (
+        <div className="mb-5 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary to-[color:var(--primary-glow)] p-5 text-primary-foreground shadow-lg">
+          <div className="flex items-start justify-between">
+            <div>
+              <Badge className="mb-2 bg-white/20 text-white hover:bg-white/20">Pro Mensal</Badge>
+              <h2 className="text-xl font-bold leading-tight">Acesso total à plataforma</h2>
+              <p className="mt-1 text-sm text-white/80">R$ 19,90/mês · cancele quando quiser</p>
+            </div>
+          </div>
+          <ul className="mt-4 space-y-1.5 text-sm">
+            {FEATURES.map((f) => (
+              <li key={f} className="flex items-center gap-2">
+                <Check className="h-4 w-4 shrink-0" /> {f}
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="secondary"
+            className="mt-4 w-full bg-white text-primary hover:bg-white/90"
+            onClick={() => toast.info("Assinatura em breve — vamos avisá-lo por e-mail.")}
+          >
+            Assinar Pro — R$ 19,90/mês
+          </Button>
+        </div>
+      )}
 
       <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Catálogo</h3>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -86,7 +98,11 @@ function CoursesPage() {
                 <h4 className="text-sm font-semibold leading-snug">{c.title}</h4>
                 <p className="mt-0.5 text-xs text-muted-foreground">{c.lessons} aulas · {c.duration}</p>
               </div>
-              <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+              {canPremium ? (
+                <Crown className="h-4 w-4 shrink-0 text-primary" />
+              ) : (
+                <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
             </div>
             <Badge variant="outline" className="mt-2 text-[10px]">{c.level}</Badge>
           </div>

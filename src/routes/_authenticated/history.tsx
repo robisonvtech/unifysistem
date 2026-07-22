@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { History as HistoryIcon, ChevronRight, Trash2 } from "lucide-react";
@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/history")({
 interface Conv { id: string; title: string; updated_at: string; }
 
 function HistoryPage() {
+  const navigate = useNavigate();
   const [list, setList] = useState<Conv[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
@@ -76,19 +77,24 @@ function HistoryPage() {
       ) : (
         <ul className="space-y-2">
           {filtered.map((c) => (
-            <li key={c.id} className="group flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{c.title}</p>
-                <p className="text-xs text-muted-foreground">{new Date(c.updated_at).toLocaleString("pt-BR")}</p>
-              </div>
+            <li key={c.id} className="group flex items-center gap-1 rounded-xl border border-border bg-card">
+              <button
+                onClick={() => navigate({ to: "/chat", search: { c: c.id } })}
+                className="flex min-w-0 flex-1 items-center gap-3 px-3 py-3 text-left"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{c.title}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(c.updated_at).toLocaleString("pt-BR")}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
               <button
                 onClick={() => remove(c.id)}
-                className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                className="mr-2 rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                 aria-label="Remover"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </li>
           ))}
         </ul>
