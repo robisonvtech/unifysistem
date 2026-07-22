@@ -68,15 +68,40 @@ function ChatPage() {
   const [state, setState] = useState<UnifyState>("idle");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [skillLevel, setSkillLevel] = useState<SkillLevel>("auto");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const send = useServerFn(sendChat);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      if (uid) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("skill_level")
+          .eq("id", uid)
+          .maybeSingle();
+        const lvl = (p?.skill_level as SkillLevel | undefined) ?? "auto";
+        if (lvl === "auto" || lvl === "beginner" || lvl === "advanced") setSkillLevel(lvl);
+      }
+    })();
     textareaRef.current?.focus();
   }, []);
+
+  async function updateSkill(next: SkillLevel) {
+    setSkillLevel(next);
+    if (!userId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ skill_level: next })
+      .eq("id", userId);
+    if (error) toast.error("Não foi possível salvar a preferência.");
+  }
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
