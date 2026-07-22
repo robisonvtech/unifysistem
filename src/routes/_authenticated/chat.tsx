@@ -6,10 +6,11 @@ import { sendChat } from "@/lib/ai-chat.functions";
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,9 @@ const SKILL_LABEL: Record<SkillLevel, string> = {
 };
 
 export const Route = createFileRoute("/_authenticated/chat")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    c: typeof s.c === "string" ? s.c : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Chat — RepairAI" },
