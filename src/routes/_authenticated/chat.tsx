@@ -6,10 +6,26 @@ import { sendChat } from "@/lib/ai-chat.functions";
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type SkillLevel = "auto" | "beginner" | "advanced";
+const SKILL_LABEL: Record<SkillLevel, string> = {
+  auto: "Auto",
+  beginner: "Iniciante",
+  advanced: "Avançado",
+};
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
@@ -51,15 +67,40 @@ function ChatPage() {
   const [state, setState] = useState<UnifyState>("idle");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [skillLevel, setSkillLevel] = useState<SkillLevel>("auto");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const send = useServerFn(sendChat);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      if (uid) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("skill_level")
+          .eq("id", uid)
+          .maybeSingle();
+        const lvl = (p?.skill_level as SkillLevel | undefined) ?? "auto";
+        if (lvl === "auto" || lvl === "beginner" || lvl === "advanced") setSkillLevel(lvl);
+      }
+    })();
     textareaRef.current?.focus();
   }, []);
+
+  async function updateSkill(next: SkillLevel) {
+    setSkillLevel(next);
+    if (!userId) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ skill_level: next })
+      .eq("id", userId);
+    if (error) toast.error("Não foi possível salvar a preferência.");
+  }
+
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -133,8 +174,10 @@ function ChatPage() {
           content: m.content,
           attachments: m.attachments,
         })),
+        skillLevel,
       };
       const result = await send({ data: payload });
+
 
       const assistantMsg: UIMessage = {
         id: crypto.randomUUID(),
@@ -178,7 +221,40 @@ function ChatPage() {
             {(state === "idle" || state === "listening" || state === "learning") && "IA especialista em reparo de celulares"}
           </p>
         </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-full px-3 text-xs">
+              <GraduationCap className="h-3.5 w-3.5" />
+              {SKILL_LABEL[skillLevel]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Nível de resposta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={skillLevel} onValueChange={(v) => updateSkill(v as SkillLevel)}>
+              <DropdownMenuRadioItem value="auto">
+                <div className="flex flex-col">
+                  <span className="text-sm">Automático</span>
+                  <span className="text-xs text-muted-foreground">Unify detecta seu nível</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="beginner">
+                <div className="flex flex-col">
+                  <span className="text-sm">Iniciante</span>
+                  <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
+                </div>
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="advanced">
+                <div className="flex flex-col">
+                  <span className="text-sm">Avançado</span>
+                  <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+                </div>
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
+
 
       {/* Messages */}
       <div className="flex-1 space-y-4 px-4 py-4">

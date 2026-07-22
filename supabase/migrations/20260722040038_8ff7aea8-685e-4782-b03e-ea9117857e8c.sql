@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS skill_level TEXT NOT NULL DEFAULT 'auto' CHECK (skill_level IN ('auto','beginner','advanced'));
