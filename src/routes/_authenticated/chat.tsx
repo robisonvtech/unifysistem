@@ -278,10 +278,13 @@ function ChatPage() {
                   <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
                 </div>
               </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="advanced">
-                <div className="flex flex-col">
-                  <span className="text-sm">Avançado</span>
-                  <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+              <DropdownMenuRadioItem value="advanced" disabled={!canPremium}>
+                <div className="flex flex-1 items-start justify-between gap-2">
+                  <div className="flex flex-col">
+                    <span className="text-sm">Avançado</span>
+                    <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+                  </div>
+                  {!canPremium && <Lock className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />}
                 </div>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>

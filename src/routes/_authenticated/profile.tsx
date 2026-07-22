@@ -73,7 +73,7 @@ function ProfilePage() {
         <h1 className="mt-3 text-lg font-bold">{displayName || "Técnico"}</h1>
         <p className="text-xs text-muted-foreground">{email}</p>
         <Badge className="mt-2" variant={subscription === "pro" ? "default" : "outline"}>
-          {subscription === "pro" ? "Pro Mensal" : "Plano Gratuito"}
+          {subscription === "pro" ? "Pro Mensal · R$ 19,90" : "Plano Gratuito"}
         </Badge>
       </div>
 
