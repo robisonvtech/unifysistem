@@ -65,6 +65,7 @@ const QUICK_ACTIONS = [
 ];
 
 function ChatPage() {
+  const search = Route.useSearch();
   const [messages, setMessages] = useState<UIMessage[]>([]);
   const [input, setInput] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -76,6 +77,7 @@ function ChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const send = useServerFn(sendChat);
+  const { canPremium } = useEntitlements();
 
   useEffect(() => {
     (async () => {
@@ -95,7 +97,34 @@ function ChatPage() {
     textareaRef.current?.focus();
   }, []);
 
+  // Load an existing conversation when navigated with ?c=<id>
+  useEffect(() => {
+    const cid = search.c;
+    if (!cid || cid === conversationId) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, role, content, attachments, created_at")
+        .eq("conversation_id", cid)
+        .order("created_at", { ascending: true });
+      if (error) return toast.error("Não foi possível abrir a conversa.");
+      setConversationId(cid);
+      setMessages(
+        (data ?? []).map((m) => ({
+          id: m.id,
+          role: m.role as "user" | "assistant",
+          content: m.content,
+          attachments: Array.isArray(m.attachments) ? (m.attachments as unknown as Attachment[]) : undefined,
+        })),
+      );
+    })();
+  }, [search.c, conversationId]);
+
   async function updateSkill(next: SkillLevel) {
+    if (next === "advanced" && !canPremium) {
+      toast.error("Modo Avançado é exclusivo Pro (R$ 19,90/mês).");
+      return;
+    }
     setSkillLevel(next);
     if (!userId) return;
     const { error } = await supabase
@@ -104,6 +133,7 @@ function ChatPage() {
       .eq("id", userId);
     if (error) toast.error("Não foi possível salvar a preferência.");
   }
+
 
 
   useEffect(() => {
