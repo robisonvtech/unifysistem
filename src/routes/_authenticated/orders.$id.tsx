@@ -81,7 +81,8 @@ function OrderDetail() {
 
   async function saveField(patch: Record<string, unknown>) {
     setSaving(true);
-    const { error } = await supabase.from("service_orders").update(patch).eq("id", id);
+    const { error } = await (supabase.from("service_orders") as unknown as { update: (v: Record<string, unknown>) => { eq: (c: string, v: string) => Promise<{ error: { message: string } | null }> } })
+      .update(patch).eq("id", id);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Salvo.");
