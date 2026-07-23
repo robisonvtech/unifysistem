@@ -1,12 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageSquare, BookOpen, GraduationCap, History, User } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Users, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/knowledge", label: "Saber", icon: BookOpen },
-  { to: "/courses", label: "Cursos", icon: GraduationCap },
-  { to: "/history", label: "Histórico", icon: History },
+  { to: "/dashboard", label: "Painel", icon: LayoutDashboard },
+  { to: "/orders", label: "OS", icon: ClipboardList },
+  { to: "/customers", label: "Clientes", icon: Users },
+  { to: "/chat", label: "IA", icon: MessageSquare },
   { to: "/profile", label: "Perfil", icon: User },
 ] as const;
 
