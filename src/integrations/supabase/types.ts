@@ -38,6 +38,113 @@ export type Database = {
         }
         Relationships: []
       }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          doc: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          doc?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          doc?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          accessories: Json
+          battery_pct: number | null
+          brand: string
+          color: string | null
+          condition: string | null
+          created_at: string
+          customer_id: string
+          device_password: string | null
+          id: string
+          imei: string | null
+          model: string
+          notes: string | null
+          owner_id: string
+          photos: Json
+          serial: string | null
+          updated_at: string
+        }
+        Insert: {
+          accessories?: Json
+          battery_pct?: number | null
+          brand: string
+          color?: string | null
+          condition?: string | null
+          created_at?: string
+          customer_id: string
+          device_password?: string | null
+          id?: string
+          imei?: string | null
+          model: string
+          notes?: string | null
+          owner_id: string
+          photos?: Json
+          serial?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accessories?: Json
+          battery_pct?: number | null
+          brand?: string
+          color?: string | null
+          condition?: string | null
+          created_at?: string
+          customer_id?: string
+          device_password?: string | null
+          id?: string
+          imei?: string | null
+          model?: string
+          notes?: string | null
+          owner_id?: string
+          photos?: Json
+          serial?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_posts: {
         Row: {
           author_id: string
@@ -142,6 +249,131 @@ export type Database = {
         }
         Relationships: []
       }
+      service_order_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          order_id: string
+          owner_id: string
+          payload: Json
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          owner_id: string
+          payload?: Json
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          owner_id?: string
+          payload?: Json
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_orders: {
+        Row: {
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          delivered_at: string | null
+          delivery_checklist: Json
+          device_id: string
+          diagnosis: string | null
+          estimated_delivery: string | null
+          id: string
+          intake_checklist: Json
+          internal_notes: string | null
+          number: number
+          owner_id: string
+          parts: Json
+          price_cents: number
+          public_token: string
+          reported_issue: string
+          services: Json
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+          warranty_days: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          delivered_at?: string | null
+          delivery_checklist?: Json
+          device_id: string
+          diagnosis?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          intake_checklist?: Json
+          internal_notes?: string | null
+          number?: number
+          owner_id: string
+          parts?: Json
+          price_cents?: number
+          public_token?: string
+          reported_issue: string
+          services?: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          warranty_days?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          delivered_at?: string | null
+          delivery_checklist?: Json
+          device_id?: string
+          diagnosis?: string | null
+          estimated_delivery?: string | null
+          id?: string
+          intake_checklist?: Json
+          internal_notes?: string | null
+          number?: number
+          owner_id?: string
+          parts?: Json
+          price_cents?: number
+          public_token?: string
+          reported_issue?: string
+          services?: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+          warranty_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_orders_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -168,6 +400,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_tracking: { Args: { _token: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -178,6 +411,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      order_status:
+        | "awaiting_diagnosis"
+        | "awaiting_approval"
+        | "awaiting_part"
+        | "in_repair"
+        | "ready"
+        | "delivered"
+        | "warranty"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -306,6 +548,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      order_status: [
+        "awaiting_diagnosis",
+        "awaiting_approval",
+        "awaiting_part",
+        "in_repair",
+        "ready",
+        "delivered",
+        "warranty",
+        "cancelled",
+      ],
     },
   },
 } as const
