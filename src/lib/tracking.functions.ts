@@ -24,5 +24,5 @@ export const getTracking = createServerFn({ method: "GET" })
     });
     const { data: rpc, error } = await client.rpc("get_tracking", { _token: data.token });
     if (error) throw new Error(error.message);
-    return { data: (rpc ?? null) as unknown };
+    return { json: JSON.stringify(rpc ?? null) };
   });
