@@ -41,7 +41,7 @@ function TrackPage() {
 
   useEffect(() => {
     fetchTracking({ data: { token } })
-      .then((res) => setData((res.data as TrackData) ?? "notfound"))
+      .then((res) => setData((JSON.parse(res.json) as TrackData | null) ?? "notfound"))
       .catch(() => setData("notfound"));
   }, [token, fetchTracking]);
 
