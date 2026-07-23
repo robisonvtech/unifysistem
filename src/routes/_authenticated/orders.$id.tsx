@@ -79,7 +79,7 @@ function OrderDetail() {
     load();
   }
 
-  async function saveField(patch: Partial<OrderFull>) {
+  async function saveField(patch: Record<string, unknown>) {
     setSaving(true);
     const { error } = await supabase.from("service_orders").update(patch).eq("id", id);
     setSaving(false);
