@@ -89,6 +89,17 @@ function OrderDetail() {
       const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 1 });
       setQr(dataUrl);
     }
+    const { data: op } = await supabase
+      .from("order_parts")
+      .select("id, part_id, name, qty, unit_price_cents")
+      .eq("order_id", id)
+      .order("created_at", { ascending: true });
+    setOrderParts((op as OrderPart[]) ?? []);
+    const { data: st } = await supabase
+      .from("parts")
+      .select("id, name, brand, model, price_cents, stock_qty")
+      .order("name");
+    setStock((st as StockPart[]) ?? []);
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -112,6 +123,35 @@ function OrderDetail() {
     load();
   }
 
+  async function addPart() {
+    const qty = parseInt(addQty, 10) || 1;
+    if (qty <= 0) return toast.error("Quantidade inválida.");
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    let payload: { owner_id: string; order_id: string; part_id: string | null; name: string; qty: number; unit_price_cents: number };
+    if (selectedPartId) {
+      const p = stock.find((s) => s.id === selectedPartId);
+      if (!p) return toast.error("Peça não encontrada.");
+      if (p.stock_qty < qty) return toast.error("Estoque insuficiente.");
+      payload = { owner_id: u.user.id, order_id: id, part_id: p.id, name: p.name, qty, unit_price_cents: p.price_cents };
+    } else {
+      if (!manualName.trim()) return toast.error("Selecione uma peça ou informe o nome.");
+      const cents = Math.round(parseFloat(manualPrice.replace(",", ".") || "0") * 100);
+      payload = { owner_id: u.user.id, order_id: id, part_id: null, name: manualName.trim(), qty, unit_price_cents: cents };
+    }
+    const { error } = await supabase.from("order_parts").insert(payload);
+    if (error) return toast.error(error.message);
+    toast.success("Peça adicionada.");
+    setSelectedPartId(""); setManualName(""); setManualPrice("0,00"); setAddQty("1");
+    load();
+  }
+
+  async function removePart(pid: string) {
+    const { error } = await supabase.from("order_parts").delete().eq("id", pid);
+    if (error) return toast.error(error.message);
+    load();
+  }
+
   async function removeOrder() {
     if (!confirm("Excluir esta OS? Esta ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("service_orders").delete().eq("id", id);
@@ -119,6 +159,8 @@ function OrderDetail() {
     toast.success("OS excluída.");
     nav({ to: "/orders" });
   }
+
+  const partsTotal = orderParts.reduce((s, p) => s + p.qty * p.unit_price_cents, 0);
 
   if (!o) return <div className="p-6 text-sm text-muted-foreground">Carregando…</div>;
 
