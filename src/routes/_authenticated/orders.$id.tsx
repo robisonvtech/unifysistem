@@ -99,7 +99,7 @@ function OrderDetail() {
 
   if (!o) return <div className="p-6 text-sm text-muted-foreground">Carregando…</div>;
 
-  const trackUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/track/${o.public_token}`;
+  const trackUrl = `${publicBaseUrl()}/track/${o.public_token}`;
 
   return (
     <div className="px-4 py-4">
