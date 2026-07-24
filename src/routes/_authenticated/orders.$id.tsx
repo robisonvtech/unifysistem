@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Copy, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, type OrderStatus } from "@/lib/orders";
+import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, publicBaseUrl, type OrderStatus } from "@/lib/orders";
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: () => ({ meta: [{ title: "OS — RepairAI" }] }),
