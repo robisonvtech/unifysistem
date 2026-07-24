@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Copy, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Printer, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, publicBaseUrl, type OrderStatus } from "@/lib/orders";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: () => ({ meta: [{ title: "OS — RepairAI" }] }),
