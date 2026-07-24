@@ -1,12 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, Users, MessageSquare, User } from "lucide-react";
+import { LayoutDashboard, ClipboardList, MessageSquare, LayoutGrid, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/dashboard", label: "Painel", icon: LayoutDashboard },
   { to: "/orders", label: "OS", icon: ClipboardList },
-  { to: "/customers", label: "Clientes", icon: Users },
   { to: "/chat", label: "IA", icon: MessageSquare },
+  { to: "/more", label: "Mais", icon: LayoutGrid },
   { to: "/profile", label: "Perfil", icon: User },
 ] as const;
 
