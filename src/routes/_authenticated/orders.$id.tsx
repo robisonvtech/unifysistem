@@ -256,8 +256,60 @@ function OrderDetail() {
             <Textarea defaultValue={o.internal_notes ?? ""} rows={2} onBlur={(e) => saveField({ internal_notes: e.target.value || null })} />
           </div>
         </div>
-        <p className="mt-3 text-right text-sm font-semibold">Total: {formatBRL(o.price_cents)}</p>
+        <div className="mt-3 space-y-1 text-right text-sm">
+          <p className="text-muted-foreground">Peças: <span className="font-medium text-foreground">{formatBRL(partsTotal)}</span></p>
+          <p className="font-semibold">Total: {formatBRL(o.price_cents + partsTotal)}</p>
+        </div>
       </section>
+
+      <section className="mb-4 rounded-xl border border-border bg-card p-4">
+        <h2 className="mb-2 text-sm font-semibold">Peças usadas</h2>
+        {orderParts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Nenhuma peça vinculada.</p>
+        ) : (
+          <ul className="mb-3 space-y-1.5">
+            {orderParts.map((p) => (
+              <li key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{p.name}</div>
+                  <div className="text-muted-foreground">{p.qty}× · {formatBRL(p.unit_price_cents)} un</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{formatBRL(p.qty * p.unit_price_cents)}</span>
+                  <Button size="icon" variant="ghost" onClick={() => removePart(p.id)} className="print:hidden"><X className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="rounded-lg border border-dashed border-border p-2 print:hidden">
+          <div className="mb-2">
+            <Label className="text-xs">Do estoque</Label>
+            <Select value={selectedPartId || "none"} onValueChange={(v) => setSelectedPartId(v === "none" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecionar peça..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Peça avulsa (manual) —</SelectItem>
+                {stock.map((s) => (
+                  <SelectItem key={s.id} value={s.id} disabled={s.stock_qty <= 0}>
+                    {s.name}{s.brand ? ` · ${s.brand}` : ""} — {s.stock_qty} un · {formatBRL(s.price_cents)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {!selectedPartId && (
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <div><Label className="text-xs">Nome</Label><Input value={manualName} onChange={(e) => setManualName(e.target.value)} placeholder="Ex: Cola B7000" /></div>
+              <div><Label className="text-xs">Preço (R$)</Label><Input value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
+            </div>
+          )}
+          <div className="flex items-end gap-2">
+            <div className="w-24"><Label className="text-xs">Qtd</Label><Input type="number" value={addQty} onChange={(e) => setAddQty(e.target.value)} /></div>
+            <Button size="sm" onClick={addPart}><Plus className="h-4 w-4" /> Adicionar peça</Button>
+          </div>
+        </div>
+      </section>
+
 
       <section className="mb-4 rounded-xl border border-border bg-card p-4 print:hidden">
         <h2 className="mb-2 text-sm font-semibold">Acompanhamento do cliente</h2>
