@@ -42,6 +42,22 @@ interface Event {
   created_at: string;
 }
 
+interface OrderPart {
+  id: string;
+  part_id: string | null;
+  name: string;
+  qty: number;
+  unit_price_cents: number;
+}
+interface StockPart {
+  id: string;
+  name: string;
+  brand: string | null;
+  model: string | null;
+  price_cents: number;
+  stock_qty: number;
+}
+
 function OrderDetail() {
   const { id } = Route.useParams();
   const nav = useNavigate();
@@ -49,6 +65,12 @@ function OrderDetail() {
   const [events, setEvents] = useState<Event[]>([]);
   const [qr, setQr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [orderParts, setOrderParts] = useState<OrderPart[]>([]);
+  const [stock, setStock] = useState<StockPart[]>([]);
+  const [selectedPartId, setSelectedPartId] = useState<string>("");
+  const [manualName, setManualName] = useState("");
+  const [manualPrice, setManualPrice] = useState("0,00");
+  const [addQty, setAddQty] = useState("1");
 
   const load = useCallback(async () => {
     const { data } = await supabase
