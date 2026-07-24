@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Copy, Printer, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Printer, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, publicBaseUrl, type OrderStatus } from "@/lib/orders";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: () => ({ meta: [{ title: "OS — RepairAI" }] }),
@@ -41,6 +42,22 @@ interface Event {
   created_at: string;
 }
 
+interface OrderPart {
+  id: string;
+  part_id: string | null;
+  name: string;
+  qty: number;
+  unit_price_cents: number;
+}
+interface StockPart {
+  id: string;
+  name: string;
+  brand: string | null;
+  model: string | null;
+  price_cents: number;
+  stock_qty: number;
+}
+
 function OrderDetail() {
   const { id } = Route.useParams();
   const nav = useNavigate();
@@ -48,6 +65,12 @@ function OrderDetail() {
   const [events, setEvents] = useState<Event[]>([]);
   const [qr, setQr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [orderParts, setOrderParts] = useState<OrderPart[]>([]);
+  const [stock, setStock] = useState<StockPart[]>([]);
+  const [selectedPartId, setSelectedPartId] = useState<string>("");
+  const [manualName, setManualName] = useState("");
+  const [manualPrice, setManualPrice] = useState("0,00");
+  const [addQty, setAddQty] = useState("1");
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -66,6 +89,17 @@ function OrderDetail() {
       const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 1 });
       setQr(dataUrl);
     }
+    const { data: op } = await supabase
+      .from("order_parts")
+      .select("id, part_id, name, qty, unit_price_cents")
+      .eq("order_id", id)
+      .order("created_at", { ascending: true });
+    setOrderParts((op as OrderPart[]) ?? []);
+    const { data: st } = await supabase
+      .from("parts")
+      .select("id, name, brand, model, price_cents, stock_qty")
+      .order("name");
+    setStock((st as StockPart[]) ?? []);
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -89,6 +123,35 @@ function OrderDetail() {
     load();
   }
 
+  async function addPart() {
+    const qty = parseInt(addQty, 10) || 1;
+    if (qty <= 0) return toast.error("Quantidade inválida.");
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    let payload: { owner_id: string; order_id: string; part_id: string | null; name: string; qty: number; unit_price_cents: number };
+    if (selectedPartId) {
+      const p = stock.find((s) => s.id === selectedPartId);
+      if (!p) return toast.error("Peça não encontrada.");
+      if (p.stock_qty < qty) return toast.error("Estoque insuficiente.");
+      payload = { owner_id: u.user.id, order_id: id, part_id: p.id, name: p.name, qty, unit_price_cents: p.price_cents };
+    } else {
+      if (!manualName.trim()) return toast.error("Selecione uma peça ou informe o nome.");
+      const cents = Math.round(parseFloat(manualPrice.replace(",", ".") || "0") * 100);
+      payload = { owner_id: u.user.id, order_id: id, part_id: null, name: manualName.trim(), qty, unit_price_cents: cents };
+    }
+    const { error } = await supabase.from("order_parts").insert(payload);
+    if (error) return toast.error(error.message);
+    toast.success("Peça adicionada.");
+    setSelectedPartId(""); setManualName(""); setManualPrice("0,00"); setAddQty("1");
+    load();
+  }
+
+  async function removePart(pid: string) {
+    const { error } = await supabase.from("order_parts").delete().eq("id", pid);
+    if (error) return toast.error(error.message);
+    load();
+  }
+
   async function removeOrder() {
     if (!confirm("Excluir esta OS? Esta ação não pode ser desfeita.")) return;
     const { error } = await supabase.from("service_orders").delete().eq("id", id);
@@ -96,6 +159,8 @@ function OrderDetail() {
     toast.success("OS excluída.");
     nav({ to: "/orders" });
   }
+
+  const partsTotal = orderParts.reduce((s, p) => s + p.qty * p.unit_price_cents, 0);
 
   if (!o) return <div className="p-6 text-sm text-muted-foreground">Carregando…</div>;
 
@@ -191,8 +256,60 @@ function OrderDetail() {
             <Textarea defaultValue={o.internal_notes ?? ""} rows={2} onBlur={(e) => saveField({ internal_notes: e.target.value || null })} />
           </div>
         </div>
-        <p className="mt-3 text-right text-sm font-semibold">Total: {formatBRL(o.price_cents)}</p>
+        <div className="mt-3 space-y-1 text-right text-sm">
+          <p className="text-muted-foreground">Peças: <span className="font-medium text-foreground">{formatBRL(partsTotal)}</span></p>
+          <p className="font-semibold">Total: {formatBRL(o.price_cents + partsTotal)}</p>
+        </div>
       </section>
+
+      <section className="mb-4 rounded-xl border border-border bg-card p-4">
+        <h2 className="mb-2 text-sm font-semibold">Peças usadas</h2>
+        {orderParts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Nenhuma peça vinculada.</p>
+        ) : (
+          <ul className="mb-3 space-y-1.5">
+            {orderParts.map((p) => (
+              <li key={p.id} className="flex items-center justify-between rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium">{p.name}</div>
+                  <div className="text-muted-foreground">{p.qty}× · {formatBRL(p.unit_price_cents)} un</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{formatBRL(p.qty * p.unit_price_cents)}</span>
+                  <Button size="icon" variant="ghost" onClick={() => removePart(p.id)} className="print:hidden"><X className="h-3.5 w-3.5 text-destructive" /></Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="rounded-lg border border-dashed border-border p-2 print:hidden">
+          <div className="mb-2">
+            <Label className="text-xs">Do estoque</Label>
+            <Select value={selectedPartId || "none"} onValueChange={(v) => setSelectedPartId(v === "none" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Selecionar peça..." /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Peça avulsa (manual) —</SelectItem>
+                {stock.map((s) => (
+                  <SelectItem key={s.id} value={s.id} disabled={s.stock_qty <= 0}>
+                    {s.name}{s.brand ? ` · ${s.brand}` : ""} — {s.stock_qty} un · {formatBRL(s.price_cents)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {!selectedPartId && (
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              <div><Label className="text-xs">Nome</Label><Input value={manualName} onChange={(e) => setManualName(e.target.value)} placeholder="Ex: Cola B7000" /></div>
+              <div><Label className="text-xs">Preço (R$)</Label><Input value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} /></div>
+            </div>
+          )}
+          <div className="flex items-end gap-2">
+            <div className="w-24"><Label className="text-xs">Qtd</Label><Input type="number" value={addQty} onChange={(e) => setAddQty(e.target.value)} /></div>
+            <Button size="sm" onClick={addPart}><Plus className="h-4 w-4" /> Adicionar peça</Button>
+          </div>
+        </div>
+      </section>
+
 
       <section className="mb-4 rounded-xl border border-border bg-card p-4 print:hidden">
         <h2 className="mb-2 text-sm font-semibold">Acompanhamento do cliente</h2>

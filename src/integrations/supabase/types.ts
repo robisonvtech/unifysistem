@@ -145,6 +145,62 @@ export type Database = {
           },
         ]
       }
+      finance_transactions: {
+        Row: {
+          amount_cents: number
+          category: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          order_id: string | null
+          owner_id: string
+          paid_at: string | null
+          payment_method: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          category?: string | null
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          order_id?: string | null
+          owner_id: string
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          category?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          order_id?: string | null
+          owner_id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_posts: {
         Row: {
           author_id: string
@@ -218,6 +274,105 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      order_parts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          order_id: string
+          owner_id: string
+          part_id: string | null
+          qty: number
+          unit_price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          order_id: string
+          owner_id: string
+          part_id?: string | null
+          qty?: number
+          unit_price_cents?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          order_id?: string
+          owner_id?: string
+          part_id?: string | null
+          qty?: number
+          unit_price_cents?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_parts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts: {
+        Row: {
+          brand: string | null
+          category: string | null
+          cost_cents: number
+          created_at: string
+          id: string
+          min_stock: number
+          model: string | null
+          name: string
+          notes: string | null
+          owner_id: string
+          price_cents: number
+          sku: string | null
+          stock_qty: number
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          cost_cents?: number
+          created_at?: string
+          id?: string
+          min_stock?: number
+          model?: string | null
+          name: string
+          notes?: string | null
+          owner_id: string
+          price_cents?: number
+          sku?: string | null
+          stock_qty?: number
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          cost_cents?: number
+          created_at?: string
+          id?: string
+          min_stock?: number
+          model?: string | null
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          price_cents?: number
+          sku?: string | null
+          stock_qty?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -370,6 +525,54 @@ export type Database = {
             columns: ["device_id"]
             isOneToOne: false
             referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string | null
+          owner_id: string
+          part_id: string
+          qty: number
+          reason: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          owner_id: string
+          part_id: string
+          qty: number
+          reason?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          owner_id?: string
+          part_id?: string
+          qty?: number
+          reason?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "service_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts"
             referencedColumns: ["id"]
           },
         ]
