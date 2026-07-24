@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Copy, Printer, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, type OrderStatus } from "@/lib/orders";
+import { STATUS_LABEL, STATUS_COLOR, STATUS_ORDER, formatBRL, formatOSNumber, publicBaseUrl, type OrderStatus } from "@/lib/orders";
 
 export const Route = createFileRoute("/_authenticated/orders/$id")({
   head: () => ({ meta: [{ title: "OS — RepairAI" }] }),
@@ -62,7 +62,7 @@ function OrderDetail() {
       .order("created_at", { ascending: true });
     setEvents((ev as unknown as Event[]) ?? []);
     if (data?.public_token) {
-      const url = `${window.location.origin}/track/${data.public_token}`;
+      const url = `${publicBaseUrl()}/track/${data.public_token}`;
       const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 1 });
       setQr(dataUrl);
     }
@@ -99,7 +99,7 @@ function OrderDetail() {
 
   if (!o) return <div className="p-6 text-sm text-muted-foreground">Carregando…</div>;
 
-  const trackUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/track/${o.public_token}`;
+  const trackUrl = `${publicBaseUrl()}/track/${o.public_token}`;
 
   return (
     <div className="px-4 py-4">

@@ -48,3 +48,21 @@ export function formatBRL(cents: number) {
 export function formatOSNumber(n: number | string) {
   return `#${String(n).padStart(5, "0")}`;
 }
+
+/**
+ * Base URL pública para links compartilháveis (rastreamento, QR).
+ * Usa o domínio publicado quando estamos em preview do editor Lovable,
+ * caso contrário usa o próprio origin. Garante que o cliente final
+ * acesse sem cair na tela de login do preview.
+ */
+export const PUBLIC_APP_URL = "https://unifysistem.lovable.app";
+
+export function publicBaseUrl() {
+  if (typeof window === "undefined") return PUBLIC_APP_URL;
+  const host = window.location.hostname;
+  if (host.includes("lovableproject.com") || host.includes("id-preview--") || host === "localhost") {
+    return PUBLIC_APP_URL;
+  }
+  return window.location.origin;
+}
+
