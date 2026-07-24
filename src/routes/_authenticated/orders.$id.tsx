@@ -62,7 +62,7 @@ function OrderDetail() {
       .order("created_at", { ascending: true });
     setEvents((ev as unknown as Event[]) ?? []);
     if (data?.public_token) {
-      const url = `${window.location.origin}/track/${data.public_token}`;
+      const url = `${publicBaseUrl()}/track/${data.public_token}`;
       const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 1 });
       setQr(dataUrl);
     }
