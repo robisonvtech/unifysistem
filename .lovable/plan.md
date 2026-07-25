@@ -1,77 +1,58 @@
-# Onda 1 — Núcleo operacional da assistência
 
-Como você respondeu "faça isso" sem escolher, vou pelo caminho que destrava todo o resto: **núcleo operacional** (Clientes + Aparelhos + Ordens de Serviço) com **dashboard enxuto**. Financeiro, Estoque, Portal do Cliente e WhatsApp vêm nas ondas seguintes — cada um depende deste núcleo.
+## Visão
 
-## O que entra nesta onda
+Adotar as 3 telas de referência que você enviou como sistema visual oficial da Unify RepairAI:
 
-**Clientes**
-- Cadastro: nome, telefone, e-mail, CPF/CNPJ, endereço, foto, notas
-- Busca rápida por nome/telefone
-- Detecção de duplicidade por telefone
-- Histórico do cliente (todas as OS + aparelhos)
+- **START (light minimal)** — cards limpos, muito espaço, foco em ações rápidas.
+- **PRO (light premium)** — mascote hero, cards com badges PRO/IA, KPIs com sparkline.
+- **ELITE (dark futurista)** — fundo #090909, aura vermelha, ícones neon, dashboard denso.
 
-**Aparelhos** (vinculados ao cliente)
-- Marca, modelo, IMEI/serial, cor, senha (criptografada), acessórios, condição, % bateria, fotos, observações
+A paleta primary `#BF0000`, backgrounds `#FAFAFA`/`#090909`, textos `#1A1A1A`/`#FFFFFF` e efeitos (glassmorphism, blur, sombras suaves) viram tokens semânticos em `src/styles.css`. Cada plano recebe seu próprio layout de dashboard e badge, comutáveis pelo campo `subscription_status` (start/pro/elite).
 
-**Ordens de Serviço (OS)**
-- Número automático sequencial + QR code
-- Status: Aguardando diagnóstico → Aguardando aprovação → Aguardando peça → Em reparo → Pronto → Entregue → Garantia
-- Checklist de entrada e de entrega (smartphone padrão; customizável depois)
-- Timeline de eventos (auto)
-- Defeito relatado, diagnóstico, serviços executados, peças
-- Valor, prazo estimado, garantia (dias)
-- Notas internas (só técnico) vs. notas do cliente
-- Técnico responsável (por enquanto = usuário logado)
-- **Link público de acompanhamento** (`/track/<token>`) — cliente vê status, timeline e fotos sem login
-- Geração de PDF da OS (imprimível)
+## Entregas por onda
 
-**Dashboard enxuto** (8 cards)
-- OS abertas · Em andamento · Aguardando peça · Aguardando aprovação · Prontas para retirada · Entregues no mês · Receita do mês · Tempo médio de reparo
-- Lista das 5 OS mais recentes com status colorido
+### Onda A — Fundação visual (esta rodada)
+- Gerar o mascote fantasminha premium como asset (light + dark + hero) via `imagegen` e servir via Lovable Assets.
+- Reescrever `src/styles.css` com os tokens da nova identidade (cores, gradientes vermelhos, sombras `--shadow-elegant`, `--shadow-glow`, glass tokens, tipografia SF-like via Inter).
+- Atualizar `UnifyMascot.tsx` para renderizar o asset com estados (idle/pensando/feliz/erro) usando aura CSS + micro-anima.
+- Novo `BottomNav` centralizado com botão flutuante do mascote (como nas 3 refs).
+- Adicionar `elite` ao enum `subscription_status` e um hook `usePlan()` que devolve `{ plan, theme, dashboard }`.
 
-**Navegação**
-- Bottom nav ganha: Dashboard · OS · Clientes · Chat IA · Perfil
-- Cursos e Base de conhecimento continuam acessíveis mas fora da nav principal
+### Onda B — Redesenho tela a tela
+Refazer, uma por uma, mantendo lógica atual:
+1. `dashboard.tsx` — 3 variantes (Start / Pro / Elite) selecionadas por plano.
+2. `chat.tsx` — layout premium com hero do mascote, streaming, quick actions em pill.
+3. `courses.tsx`, `profile.tsx`, `more.tsx`.
+4. `orders.tsx`, `orders.$id.tsx`, `orders.new.tsx`, `customers.tsx`, `inventory.tsx`, `finance.tsx`, `history.tsx`, `knowledge.tsx`.
+5. `auth.tsx` + `index.tsx` (landing/onboarding).
 
-## Segurança
+Cada tela ganha `head()` com metadata própria.
 
-- RLS: só o dono (admin/técnico) vê suas OS/clientes; link público valida por token opaco
-- Senhas de aparelho armazenadas cifradas (pgcrypto)
-- Validação Zod em toda entrada de servidor
-- Admin (você) enxerga tudo
-
-## Fora do escopo desta onda (ondas futuras)
-
-- Financeiro completo, contas a pagar/receber, PIX/cartão
-- Estoque, fornecedores, código de barras
-- WhatsApp API, notificações automáticas
-- IA que lê conversa e sugere diagnóstico/peça/preço
-- Busca automática de imagens contextuais
-- Múltiplos técnicos + gestão de produtividade
-- Portal do cliente autenticado (por ora só link público read-only)
+### Onda C — Biometria (WebAuthn/Passkeys)
+- Migration: tabela `webauthn_credentials` (owner_id, credential_id, public_key, counter, transports) com RLS estrita.
+- Server functions `registerPasskey` / `verifyPasskey` usando `@simplewebauthn/server`.
+- UI no `profile.tsx`: "Ativar Face ID / Touch ID" — usa `navigator.credentials.create` no dispositivo do usuário.
+- Login em `auth.tsx` com botão "Entrar com biometria" quando `PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()`.
+- Sessão continua Supabase Auth; passkey substitui a senha via magic-link server-signed.
 
 ## Detalhes técnicos
 
-Migrações:
-- `customers` (user_id owner, nome, telefone, email, doc, endereço, foto_url, notas)
-- `devices` (customer_id, brand, model, imei, serial, color, password_enc, accessories jsonb, condition, battery_pct, photos jsonb, notes)
-- `service_orders` (number serial, device_id, customer_id, owner_id, status enum, reported_issue, diagnosis, services jsonb, parts jsonb, price_cents, warranty_days, estimated_delivery, public_token, intake_checklist jsonb, delivery_checklist jsonb)
-- `service_order_events` (order_id, type, payload jsonb, created_at) — timeline
-- RLS por `owner_id = auth.uid()` + admin bypass via `has_role`
-- Rota pública `/track/$token` (top-level, sem auth) lê via server fn publishable com policy `TO anon` filtrando por token
+- **Mascote**: 3 imagens (`unify-hero-light`, `unify-hero-dark`, `unify-mini`) via `imagegen` premium, PNG transparente. Servidas por `lovable-assets` (não vai pro bundle).
+- **Tokens** (extrato de `src/styles.css`):
+  ```
+  --primary: 0 100% 37.5%;          /* #BF0000 */
+  --primary-glow: 0 100% 55%;
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  --shadow-elegant: 0 20px 60px -20px hsl(var(--primary) / 0.25);
+  --shadow-glow: 0 0 40px hsl(var(--primary-glow) / 0.35);
+  --glass-bg: color-mix(in oklab, white 60%, transparent);
+  ```
+- **Plano ELITE**: novo tema aplicado via `<html data-plan="elite">` — `@custom-variant elite-plan` no CSS troca fundos e adiciona aura.
+- **WebAuthn**: `@simplewebauthn/browser` (client) + `@simplewebauthn/server` (server fn). Challenges gravados em `auth_challenges` com TTL de 5 min.
+- **Escopo fora**: cursos/planos dinâmicos, editor admin de layouts, upload de esquemas/BoardViews, IA multimodal áudio/vídeo, notificações push — ficam para as próximas ondas.
 
-UI:
-- shadcn: Table, Dialog, Sheet, Tabs, Command (busca), Badge
-- Rotas: `/_authenticated/dashboard`, `/orders`, `/orders/$id`, `/orders/new`, `/customers`, `/customers/$id`, `/track/$token` (público)
-- PDF via `@react-pdf/renderer` ou HTML print
-- QR via `qrcode` (bun add)
+## Ordem de execução
 
-Estimativa: ~15 arquivos novos, 1 migração grande, 1 onda de trabalho.
+Vou executar **Onda A inteira nesta rodada** (fundação + mascote + navegação nova + tokens + suporte a `elite`). Depois volto e você me diz por qual tela da Onda B começo (sugiro dashboard → chat). Onda C (WebAuthn) entra por último para não misturar código sensível de auth com o redesign.
 
-## Próximos passos após aprovação
-
-1. Aprovo a migração das 4 tabelas + policies
-2. Você aceita a migração
-3. Construo as rotas e componentes
-4. Testo criação de OS → mudança de status → link público → PDF
-5. Você valida e escolhemos a Onda 2 (Financeiro ou WhatsApp)
+Confirma para eu começar?
