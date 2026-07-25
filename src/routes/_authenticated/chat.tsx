@@ -296,20 +296,25 @@ function ChatPage() {
       {/* Messages */}
       <div className="flex-1 space-y-4 px-4 py-4">
         {empty ? (
-          <div className="flex flex-col items-center pt-6 text-center">
-            <UnifyMascot size={120} state="idle" />
-            <h2 className="mt-4 text-xl font-bold tracking-tight">Como posso te ajudar hoje?</h2>
-            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-              Descreva o defeito, envie fotos ou áudio — a Unify diagnostica em segundos.
+          <div className="relative flex flex-col items-center pt-4 text-center">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-56 hero-aura" aria-hidden />
+            <div className="relative">
+              <UnifyMascot size={140} state="idle" aura elite />
+            </div>
+            <h2 className="mt-5 text-2xl font-bold tracking-tight">
+              Como posso te ajudar <span className="gradient-text">hoje?</span>
+            </h2>
+            <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+              Descreva o defeito ou envie fotos — a Unify diagnostica em segundos.
             </p>
             <div className="mt-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
               {QUICK_ACTIONS.map((a) => (
                 <button
                   key={a.label}
                   onClick={() => { setInput(a.prompt); textareaRef.current?.focus(); }}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card p-3 text-xs font-medium transition hover:border-primary/40 hover:bg-accent/40"
+                  className="group flex flex-col items-center gap-2 rounded-2xl border border-border bg-card p-3 text-xs font-medium transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-[0_10px_30px_-15px_oklch(0.505_0.235_27.5/0.4)]"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                     <a.icon className="h-4 w-4" />
                   </span>
                   <span className="text-center leading-tight">{a.label}</span>
@@ -322,18 +327,19 @@ function ChatPage() {
         )}
         {(state === "thinking" || state === "typing" || state === "scanning") && (
           <div className="flex items-end gap-2 animate-fade-up">
-            <UnifyMascot size={32} state={state} />
+            <UnifyMascot size={32} state={state} aura />
             <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
               <div className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "150ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
+
 
       {/* Composer */}
       <div className="sticky bottom-0 border-t border-border bg-background/95 px-3 py-3 backdrop-blur">
