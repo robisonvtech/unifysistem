@@ -240,9 +240,9 @@ function ChatPage() {
   const empty = messages.length === 0;
 
   return (
-    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col">
+    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[radial-gradient(circle_at_top,_rgba(191,0,0,0.08),_transparent_48%)]">
       {/* Header */}
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/80 bg-background/90 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl">
         <UnifyMascot size={36} state={state} />
         <div className="flex-1">
           <h1 className="text-sm font-semibold leading-tight">Unify</h1>
@@ -294,20 +294,20 @@ function ChatPage() {
 
 
       {/* Messages */}
-      <div className="flex-1 space-y-4 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-4">
         {empty ? (
-          <div className="flex flex-col items-center pt-6 text-center">
+          <div className="flex flex-col items-center rounded-3xl border border-border/70 bg-card/70 p-6 text-center shadow-sm backdrop-blur">
             <UnifyMascot size={120} state="idle" />
-            <h2 className="mt-4 text-xl font-bold tracking-tight">Como posso te ajudar hoje?</h2>
+            <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground">Como posso te ajudar hoje?</h2>
             <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-              Descreva o defeito, envie fotos ou áudio — a Unify diagnostica em segundos.
+              Descreva o defeito, envie fotos ou áudio — a Unify diagnostica com atenção e linguagem mais humana.
             </p>
             <div className="mt-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
               {QUICK_ACTIONS.map((a) => (
                 <button
                   key={a.label}
                   onClick={() => { setInput(a.prompt); textareaRef.current?.focus(); }}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card p-3 text-xs font-medium transition hover:border-primary/40 hover:bg-accent/40"
+                  className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/70 bg-card/90 p-3 text-xs font-medium transition hover:border-primary/40 hover:bg-accent/40"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <a.icon className="h-4 w-4" />
@@ -336,7 +336,7 @@ function ChatPage() {
       </div>
 
       {/* Composer */}
-      <div className="sticky bottom-0 border-t border-border bg-background/95 px-3 py-3 backdrop-blur">
+      <div className="sticky bottom-0 border-t border-border/80 bg-background/95 px-3 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.05)] backdrop-blur">
         {attachments.length > 0 && (
           <div className="mb-2 flex gap-2 overflow-x-auto">
             {attachments.map((a, i) => (
@@ -380,14 +380,14 @@ function ChatPage() {
             }}
             placeholder="Descreva o defeito..."
             rows={1}
-            className="max-h-32 min-h-10 resize-none rounded-2xl bg-muted/50"
+            className="max-h-32 min-h-10 resize-none rounded-2xl border border-border/70 bg-muted/60 text-foreground"
           />
           <Button
             type="button"
             size="icon"
             onClick={submit}
             disabled={state === "thinking" || state === "typing" || (!input.trim() && attachments.length === 0)}
-            className={cn("shrink-0 rounded-full")}
+            className={cn("shrink-0 rounded-full bg-primary text-primary-foreground shadow-sm")}
             aria-label="Enviar"
           >
             <Send className="h-4 w-4" />
@@ -405,10 +405,10 @@ function MessageBubble({ m }: { m: UIMessage }) {
       {!isUser && <UnifyMascot size={32} state="idle" />}
       <div
         className={cn(
-          "max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+          "max-w-[84%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
           isUser
             ? "rounded-br-sm bg-[color:var(--chat-user)] text-[color:var(--chat-user-foreground)]"
-            : "rounded-bl-sm bg-muted text-foreground",
+            : "rounded-bl-sm border border-border/70 bg-card/95 text-foreground",
         )}
       >
         {m.attachments && m.attachments.length > 0 && (
@@ -418,7 +418,7 @@ function MessageBubble({ m }: { m: UIMessage }) {
             ))}
           </div>
         )}
-        {isUser ? <p className="whitespace-pre-wrap">{m.content}</p> : <MarkdownLite content={m.content} />}
+        {isUser ? <p className="whitespace-pre-wrap break-words">{m.content}</p> : <MarkdownLite content={m.content} />}
       </div>
     </div>
   );
