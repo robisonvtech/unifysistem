@@ -90,6 +90,10 @@ function ProfilePage() {
         </span>
       </section>
 
+      <PlanSwitcher />
+
+
+
       <section className="mt-4 space-y-3 premium-card p-5">
         <h2 className="text-sm font-semibold">Informações</h2>
         <div className="space-y-1.5">
