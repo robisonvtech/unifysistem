@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UnifyMascot } from "@/components/UnifyMascot";
-import { LogOut, Save } from "lucide-react";
+import { LogOut, Save, Sparkles, Crown, Gem } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePlan, type Plan } from "@/hooks/usePlan";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
