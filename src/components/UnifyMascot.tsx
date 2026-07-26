@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import mascotSrc from "@/assets/unify-mascot-hero.png";
 
 export type UnifyState =
   | "idle"
@@ -10,10 +11,10 @@ export type UnifyState =
   | "error"
   | "learning"
   | "sleeping"
+  | "celebrating"
   | "analyzing"
   | "searching"
   | "speaking"
-  | "celebrating"
   | "elite";
 
 interface UnifyMascotProps {
@@ -21,19 +22,23 @@ interface UnifyMascotProps {
   size?: number;
   className?: string;
   variant?: "start" | "pro" | "elite";
+  aura?: boolean;
+  elite?: boolean;
 }
 
 /**
- * Unify — The official RepairAI mascot.
- * Responsive, 60fps CSS animated, state-aware 3D blob & cyberpunk mascot.
+ * Unify — the official RepairAI mascot.
+ * Responsive, state-aware mascot with a premium glow and fallback image.
  */
 export function UnifyMascot({
   state = "idle",
   size = 96,
   className,
   variant = "start",
+  aura = false,
+  elite = false,
 }: UnifyMascotProps) {
-  const isElite = variant === "elite" || state === "elite";
+  const isElite = variant === "elite" || state === "elite" || elite;
   const isError = state === "error";
   const isSuccess = state === "success" || state === "celebrating";
   const isThinking = state === "thinking" || state === "analyzing" || state === "searching";
@@ -44,34 +49,36 @@ export function UnifyMascot({
   const isSleeping = state === "sleeping";
   const eyesClosed = isThinking || isTyping || isSuccess || isLearning || isSleeping;
 
+  const animation = isError
+    ? "unify-shake 0.4s ease-in-out infinite"
+    : isSuccess
+      ? "unify-float 2s ease-in-out infinite, unify-breathe 1.8s ease-in-out infinite"
+      : isSleeping
+        ? "unify-breathe 5s ease-in-out infinite"
+        : "unify-float 4s ease-in-out infinite, unify-breathe 4s ease-in-out infinite";
+
   return (
     <div
-      className={cn("relative inline-block select-none transition-all duration-300", className)}
+      className={cn("relative inline-flex items-center justify-center select-none transition-all duration-300", className)}
       style={{ width: size, height: size }}
+      aria-label={`Unify mascot — ${state}`}
     >
-      {/* ELITE Cyberpunk Pedestal Glow Effect */}
+      {aura && (
+        <div
+          className="pointer-events-none absolute inset-0 -z-10 animate-aura rounded-full"
+          style={{
+            background: "var(--gradient-glow)",
+            filter: "blur(10px)",
+          }}
+        />
+      )}
       {isElite && (
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4/5 h-4 bg-red-600/40 blur-md rounded-full animate-pulse" />
+        <div className="absolute -bottom-2 left-1/2 h-4 w-4/5 -translate-x-1/2 rounded-full bg-red-600/40 blur-md animate-pulse" />
       )}
 
-      {/* PRO Glowing Aura Ring */}
-      {variant === "pro" && (
-        <div className="absolute inset-0 -m-2 rounded-full bg-gradient-to-r from-red-500/30 via-pink-500/20 to-red-600/30 blur-lg animate-pulse" />
-      )}
-
-      <div
-        className="relative w-full h-full"
-        style={{
-          animation: isError
-            ? "unify-shake 0.4s ease-in-out infinite"
-            : isSuccess
-            ? "unify-glow 1.8s ease-in-out infinite, unify-float 3s ease-in-out infinite"
-            : "unify-float 3s ease-in-out infinite, unify-breathe 3.5s ease-in-out infinite",
-        }}
-      >
-        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-sm" aria-hidden="true">
+      <div className="relative h-full w-full" style={{ animation }}>
+        <svg viewBox="0 0 120 120" className="h-full w-full drop-shadow-sm" aria-hidden="true">
           <defs>
-            {/* Body Gradients */}
             <radialGradient id="unify-body-light" cx="50%" cy="35%" r="65%">
               <stop offset="0%" stopColor="#ffffff" />
               <stop offset="70%" stopColor="#f4f4f7" />
@@ -89,17 +96,14 @@ export function UnifyMascot({
               <stop offset="100%" stopColor="rgba(0,0,0,0)" />
             </radialGradient>
 
-            {/* Glowing Red Eyes filter for ELITE */}
             <filter id="red-eye-glow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="2" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
 
-          {/* Ground shadow */}
           <ellipse cx="60" cy="112" rx="28" ry="5" fill="url(#unify-shadow)" />
 
-          {/* Body — rounded smooth blob/ghost mascot */}
           <path
             d="M60 12
                C 32 12, 18 34, 18 60
@@ -116,7 +120,6 @@ export function UnifyMascot({
             strokeWidth={isElite ? 2 : isError ? 1.5 : 1}
           />
 
-          {/* Red U Emblem on forehead */}
           <g transform="translate(60 34)">
             <path
               d="M-8 -8 L -8 3 C -8 8, -4 11, 0 11 C 4 11, 8 8, 8 3 L 8 -8"
@@ -128,9 +131,7 @@ export function UnifyMascot({
             />
           </g>
 
-          {/* Eyes */}
           {isElite ? (
-            /* Cyberpunk Glowing Red Eyes */
             <g fill="#BF0000" filter="url(#red-eye-glow)">
               {isSleeping ? (
                 <g stroke="#BF0000" strokeWidth="2.5" strokeLinecap="round">
@@ -177,7 +178,6 @@ export function UnifyMascot({
             </g>
           )}
 
-          {/* Mouth */}
           {isElite ? (
             <path
               d="M50 78 Q 60 84 70 78"
@@ -207,14 +207,12 @@ export function UnifyMascot({
             <path d="M52 80 Q 60 85 68 80" stroke="#1a1a1a" strokeWidth="2" fill="none" strokeLinecap="round" />
           )}
 
-          {/* Scanning line */}
           {isScanning && (
             <rect x="18" y="60" width="84" height="2" fill="#BF0000" opacity="0.8">
               <animate attributeName="y" from="20" to="100" dur="1.4s" repeatCount="indefinite" />
             </rect>
           )}
 
-          {/* Listening sound waves */}
           {isListening && (
             <g stroke="#BF0000" strokeWidth="1.5" fill="none" opacity="0.6">
               <circle cx="60" cy="60" r="52">
@@ -224,7 +222,6 @@ export function UnifyMascot({
             </g>
           )}
 
-          {/* Success Check Badge */}
           {isSuccess && (
             <g transform="translate(90 90)">
               <circle r="12" fill="#10B981" />
@@ -240,6 +237,13 @@ export function UnifyMascot({
           )}
         </svg>
       </div>
+      {isThinking && (
+        <div className="absolute -bottom-1 left-1/2 flex gap-1 -translate-x-1/2">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" style={{ animation: "dot-bounce 1.2s infinite" }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" style={{ animation: "dot-bounce 1.2s infinite 0.2s" }} />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" style={{ animation: "dot-bounce 1.2s infinite 0.4s" }} />
+        </div>
+      )}
     </div>
   );
 }

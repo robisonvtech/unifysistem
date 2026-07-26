@@ -309,7 +309,7 @@ function ChatPage() {
                   onClick={() => { setInput(a.prompt); textareaRef.current?.focus(); }}
                   className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/70 bg-card/90 p-3 text-xs font-medium transition hover:border-primary/40 hover:bg-accent/40"
                 >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                     <a.icon className="h-4 w-4" />
                   </span>
                   <span className="text-center leading-tight">{a.label}</span>
@@ -322,18 +322,19 @@ function ChatPage() {
         )}
         {(state === "thinking" || state === "typing" || state === "scanning") && (
           <div className="flex items-end gap-2 animate-fade-up">
-            <UnifyMascot size={32} state={state} />
+            <UnifyMascot size={32} state={state} aura />
             <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
               <div className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "0ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "150ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" style={{ animationDelay: "300ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "150ms" }} />
+                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           </div>
         )}
         <div ref={bottomRef} />
       </div>
+
 
       {/* Composer */}
       <div className="sticky bottom-0 border-t border-border/80 bg-background/95 px-3 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.05)] backdrop-blur">
