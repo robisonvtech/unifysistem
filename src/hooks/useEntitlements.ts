@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { hasAccessToApp, normalizeSubscriptionStatus } from "@/lib/subscription";
 
 export interface Entitlements {
   loading: boolean;
   userId: string | null;
   isAdmin: boolean;
   isPro: boolean;
-  /** Admin or Pro subscriber — unlocks Advanced mode + Courses. */
+  plan: "free" | "start" | "pro" | "elite" | "inactive";
+  /** Admin or any paid plan subscriber — unlocks Advanced mode + Courses. */
   canPremium: boolean;
 }
 
@@ -16,6 +18,7 @@ export function useEntitlements(): Entitlements {
     userId: null,
     isAdmin: false,
     isPro: false,
+    plan: "free",
     canPremium: false,
   });
 
@@ -25,7 +28,7 @@ export function useEntitlements(): Entitlements {
       const { data: u } = await supabase.auth.getUser();
       const uid = u.user?.id ?? null;
       if (!uid) {
-        if (active) setState({ loading: false, userId: null, isAdmin: false, isPro: false, canPremium: false });
+        if (active) setState({ loading: false, userId: null, isAdmin: false, isPro: false, plan: "free", canPremium: false });
         return;
       }
       const [{ data: roles }, { data: profile }] = await Promise.all([
@@ -33,14 +36,16 @@ export function useEntitlements(): Entitlements {
         supabase.from("profiles").select("subscription_status").eq("id", uid).maybeSingle(),
       ]);
       const isAdmin = (roles ?? []).some((r) => r.role === "admin");
-      const isPro = profile?.subscription_status === "pro";
+      const plan = normalizeSubscriptionStatus(profile?.subscription_status);
+      const isPro = plan === "pro" || plan === "elite";
       if (active) {
         setState({
           loading: false,
           userId: uid,
           isAdmin,
           isPro,
-          canPremium: isAdmin || isPro,
+          plan,
+          canPremium: isAdmin || hasAccessToApp(plan),
         });
       }
     })();
