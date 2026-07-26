@@ -167,35 +167,37 @@ function OrderDetail() {
   const trackUrl = `${publicBaseUrl()}/track/${o.public_token}`;
 
   return (
-    <div className="px-4 py-4">
+    <div className="pb-6">
+      <div className="hero-aura absolute inset-x-0 top-0 -z-10 h-56" />
       <header className="mb-4 flex items-center gap-2 print:hidden">
         <Button variant="ghost" size="icon" asChild><Link to="/orders"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold">{formatOSNumber(o.number)}</h1>
+          <h1 className="gradient-text text-2xl font-bold tracking-tight">{formatOSNumber(o.number)}</h1>
           <p className="text-xs text-muted-foreground">Criada em {new Date(o.created_at).toLocaleString("pt-BR")}</p>
         </div>
         <Button size="icon" variant="ghost" onClick={() => window.print()}><Printer className="h-4 w-4" /></Button>
         <Button size="icon" variant="ghost" onClick={removeOrder}><Trash2 className="h-4 w-4 text-destructive" /></Button>
       </header>
 
-      <section className="mb-4 rounded-xl border border-border bg-card p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">Status</span>
+      <section className="premium-card mb-4 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Status</span>
           <Badge variant="outline" className={STATUS_COLOR[o.status]}>{STATUS_LABEL[o.status]}</Badge>
         </div>
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1.5">
           {STATUS_ORDER.map((s) => (
             <button
               key={s}
               disabled={saving || s === o.status}
               onClick={() => updateStatus(s)}
-              className={`rounded-full border px-2.5 py-1 text-[11px] ${s === o.status ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:border-primary/40"}`}
+              className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition ${s === o.status ? "gradient-primary border-transparent text-primary-foreground shadow-[0_6px_16px_-8px_oklch(0.505_0.235_27.5/0.6)]" : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground"}`}
             >
               {STATUS_LABEL[s]}
             </button>
           ))}
         </div>
       </section>
+
 
       <section className="mb-4 rounded-xl border border-border bg-card p-4">
         <h2 className="mb-2 text-sm font-semibold">Cliente</h2>
