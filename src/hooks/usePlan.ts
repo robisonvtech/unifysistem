@@ -48,8 +48,9 @@ export function usePlan(): PlanTheme {
     if (loading) return;
     const root = document.documentElement;
     root.setAttribute("data-plan", plan);
-    if (plan === "elite") root.classList.add("dark");
-    else root.classList.remove("dark");
+    const shouldUseDark = plan === "elite" || plan === "pro";
+    root.classList.toggle("dark", shouldUseDark);
+    root.style.colorScheme = shouldUseDark ? "dark" : "light";
   }, [plan, loading]);
 
   return {
@@ -61,7 +62,7 @@ export function usePlan(): PlanTheme {
         : plan === "pro"
           ? "bg-primary text-primary-foreground"
           : "bg-muted text-muted-foreground",
-    isDark: plan === "elite",
+    isDark: plan === "elite" || plan === "pro",
     canSwitch: isAdmin,
     setOverride,
     override,
