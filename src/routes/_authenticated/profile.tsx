@@ -62,22 +62,33 @@ function ProfilePage() {
     navigate({ to: "/auth" });
   }
 
-  return (
-    <div className="px-4 py-4">
-      <div className="flex flex-col items-center py-4">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="h-24 w-24 rounded-full border-2 border-primary object-cover" />
-        ) : (
-          <UnifyMascot size={96} state="idle" />
-        )}
-        <h1 className="mt-3 text-lg font-bold">{displayName || "Técnico"}</h1>
-        <p className="text-xs text-muted-foreground">{email}</p>
-        <Badge className="mt-2" variant={subscription === "pro" ? "default" : "outline"}>
-          {subscription === "pro" ? "Pro Mensal · R$ 19,90" : "Plano Gratuito"}
-        </Badge>
-      </div>
+  const planLabel = subscription === "elite" ? "ELITE · Acesso total" : subscription === "pro" ? "PRO Mensal · R$ 19,90" : "Plano Gratuito";
+  const planClass = subscription === "elite"
+    ? "gradient-primary text-primary-foreground elite-glow"
+    : subscription === "pro"
+      ? "gradient-primary text-primary-foreground"
+      : "bg-muted text-muted-foreground";
 
-      <section className="mt-4 space-y-3 rounded-2xl border border-border bg-card p-4">
+  return (
+    <div className="pb-6">
+      <div className="hero-aura absolute inset-x-0 top-0 -z-10 h-72" />
+
+      <section className="premium-card relative overflow-hidden p-6 text-center">
+        <div className="mx-auto flex items-center justify-center">
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="h-24 w-24 rounded-full border-2 border-primary object-cover shadow-[0_10px_30px_-10px_oklch(0.505_0.235_27.5/0.5)]" />
+          ) : (
+            <UnifyMascot size={112} state="idle" aura elite={subscription === "elite"} />
+          )}
+        </div>
+        <h1 className="mt-3 text-xl font-bold tracking-tight">{displayName || "Técnico"}</h1>
+        <p className="text-xs text-muted-foreground">{email}</p>
+        <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${planClass}`}>
+          {planLabel}
+        </span>
+      </section>
+
+      <section className="mt-4 space-y-3 premium-card p-5">
         <h2 className="text-sm font-semibold">Informações</h2>
         <div className="space-y-1.5">
           <Label htmlFor="p-name">Nome</Label>
@@ -87,19 +98,19 @@ function ProfilePage() {
           <Label htmlFor="p-avatar">URL da foto de perfil (opcional)</Label>
           <Input id="p-avatar" placeholder="https://..." value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} />
         </div>
-        <Button onClick={save} disabled={loading} className="w-full">
+        <Button onClick={save} disabled={loading} className="w-full gradient-primary text-primary-foreground">
           <Save className="mr-2 h-4 w-4" /> {loading ? "Salvando..." : "Salvar alterações"}
         </Button>
       </section>
 
       <button
         onClick={logout}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/5"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium text-destructive transition hover:bg-destructive/5"
       >
         <LogOut className="h-4 w-4" /> Sair
       </button>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">RepairAI · Unify · v1.0</p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">Unify RepairAI · v1.0</p>
     </div>
   );
 }

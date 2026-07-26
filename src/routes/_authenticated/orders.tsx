@@ -68,33 +68,35 @@ function OrdersList() {
   });
 
   return (
-    <div className="px-4 py-4">
-      <header className="mb-3 flex items-center justify-between">
+    <div className="pb-6">
+      <div className="hero-aura absolute inset-x-0 top-0 -z-10 h-64" />
+      <header className="mb-4 flex items-end justify-between">
         <div>
-          <h1 className="text-lg font-bold">Ordens de Serviço</h1>
-          <p className="text-xs text-muted-foreground">{orders.length} OS no total.</p>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-primary">Operação</p>
+          <h1 className="text-2xl font-bold tracking-tight">Ordens de Serviço</h1>
+          <p className="text-xs text-muted-foreground">{orders.length} OS no total</p>
         </div>
-        <Button asChild size="sm">
-          <Link to="/orders/new"><Plus className="h-4 w-4" /> Nova</Link>
+        <Button asChild size="sm" className="gradient-primary text-primary-foreground shadow-[0_8px_24px_-8px_oklch(0.505_0.235_27.5/0.5)]">
+          <Link to="/orders/new"><Plus className="h-4 w-4" /> Nova OS</Link>
         </Button>
       </header>
 
-      <div className="relative mb-3">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="glass-card mb-3 flex items-center gap-2 rounded-2xl px-3 py-1.5">
+        <Search className="h-4 w-4 text-muted-foreground" />
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar por número, cliente, aparelho..."
-          className="pl-9"
+          className="h-9 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
         />
       </div>
 
-      <div className="mb-3 flex gap-1 overflow-x-auto pb-1">
+      <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1">
         <button
           onClick={() => setFilter("all")}
           className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition",
-            filter === "all" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground",
+            "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+            filter === "all" ? "gradient-primary border-transparent text-primary-foreground shadow-[0_6px_16px_-8px_oklch(0.505_0.235_27.5/0.6)]" : "border-border bg-card/50 text-muted-foreground hover:text-foreground",
           )}
         >
           Todas
@@ -104,8 +106,8 @@ function OrdersList() {
             key={s}
             onClick={() => setFilter(s)}
             className={cn(
-              "shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition",
-              filter === s ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-muted-foreground",
+              "shrink-0 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition",
+              filter === s ? "gradient-primary border-transparent text-primary-foreground shadow-[0_6px_16px_-8px_oklch(0.505_0.235_27.5/0.6)]" : "border-border bg-card/50 text-muted-foreground hover:text-foreground",
             )}
           >
             {STATUS_LABEL[s]}
@@ -114,32 +116,35 @@ function OrdersList() {
       </div>
 
       {loading ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Carregando…</p>
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => <div key={i} className="skeleton h-16 rounded-2xl" />)}
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Nenhuma OS encontrada.
+        <div className="premium-card p-10 text-center">
+          <p className="text-sm font-medium">Nenhuma OS encontrada.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Crie a primeira para começar.</p>
         </div>
       ) : (
         <ul className="space-y-2">
           {filtered.map((o) => (
-            <li key={o.id}>
+            <li key={o.id} className="animate-fade-up">
               <Link
                 to="/orders/$id"
                 params={{ id: o.id }}
-                className="block rounded-xl border border-border bg-card p-3 transition hover:border-primary/40"
+                className="premium-card premium-card-hover block p-3.5"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold">{formatOSNumber(o.number)}</span>
-                      <span className="truncate text-sm text-muted-foreground">{o.customers?.name ?? "—"}</span>
+                      <span className="gradient-text text-sm font-bold">{formatOSNumber(o.number)}</span>
+                      <span className="truncate text-sm font-medium">{o.customers?.name ?? "—"}</span>
                     </div>
-                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <div className="mt-1 truncate text-xs text-muted-foreground">
                       {o.devices ? `${o.devices.brand} ${o.devices.model} — ` : ""}
                       {o.reported_issue}
                     </div>
                   </div>
-                  <Badge variant="outline" className={cn("shrink-0 text-[10px]", STATUS_COLOR[o.status])}>
+                  <Badge variant="outline" className={cn("shrink-0 text-[10px] font-semibold", STATUS_COLOR[o.status])}>
                     {STATUS_LABEL[o.status]}
                   </Badge>
                 </div>
