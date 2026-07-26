@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UnifyMascot } from "@/components/UnifyMascot";
-import { LogOut, Save } from "lucide-react";
+import { LogOut, Save, Sparkles, Crown, Gem } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePlan, type Plan } from "@/hooks/usePlan";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -88,6 +90,10 @@ function ProfilePage() {
         </span>
       </section>
 
+      <PlanSwitcher />
+
+
+
       <section className="mt-4 space-y-3 premium-card p-5">
         <h2 className="text-sm font-semibold">Informações</h2>
         <div className="space-y-1.5">
@@ -114,3 +120,57 @@ function ProfilePage() {
     </div>
   );
 }
+
+function PlanSwitcher() {
+  const { plan, canSwitch, setOverride, override } = usePlan();
+  if (!canSwitch) return null;
+
+  const options: Array<{ id: Plan; label: string; desc: string; icon: typeof Sparkles }> = [
+    { id: "start", label: "START", desc: "Light minimal", icon: Sparkles },
+    { id: "pro", label: "PRO", desc: "Light premium", icon: Crown },
+    { id: "elite", label: "ELITE", desc: "Dark futurista", icon: Gem },
+  ];
+
+  return (
+    <section className="mt-4 premium-card p-5">
+      <div className="mb-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-sm font-semibold">Visualizar como plano</h2>
+          <p className="text-[11px] text-muted-foreground">Admin: alterne entre os três layouts.</p>
+        </div>
+        {override && (
+          <button
+            onClick={() => setOverride(null)}
+            className="text-[11px] font-medium text-primary hover:underline"
+          >
+            Restaurar
+          </button>
+        )}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map((o) => {
+          const active = plan === o.id;
+          return (
+            <button
+              key={o.id}
+              onClick={() => setOverride(o.id)}
+              className={cn(
+                "flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center transition",
+                active
+                  ? "gradient-primary border-transparent text-primary-foreground shadow-[0_10px_24px_-10px_oklch(0.505_0.235_27.5/0.5)]"
+                  : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              <o.icon className={cn("h-5 w-5", active ? "text-primary-foreground" : "text-primary")} />
+              <span className="text-xs font-bold tracking-wide">{o.label}</span>
+              <span className={cn("text-[10px]", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                {o.desc}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
