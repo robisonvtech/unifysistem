@@ -30,11 +30,71 @@ export function AdminControlPanel() {
     setActiveMascotState,
   } = usePlan();
 
-  const [activeTab, setActiveTab] = useState<"plans" | "mascot" | "features" | "content">("plans");
+  const [activeTab, setActiveTab] = useState<"plans" | "mascot" | "features" | "content" | "users">("plans");
   const [startPrice, setStartPrice] = useState("0");
   const [proPrice, setProPrice] = useState("49.90");
   const [elitePrice, setElitePrice] = useState("99.90");
   const [notificationText, setNotificationText] = useState("");
+  // users management
+  const [users, setUsers] = useState<Array<any>>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserRole, setNewUserRole] = useState<string | null>(null);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const res = await fetch("/api/admin/users");
+      if (!res.ok) throw new Error("failed");
+      const json = await res.json();
+      setUsers(json.users ?? []);
+    } catch (err) {
+      toast.error("Não foi possível buscar usuários");
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  const createTestUser = async () => {
+    if (!newUserEmail || !newUserPassword) return toast.error("Email e senha são obrigatórios");
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email: newUserEmail, password: newUserPassword, display_name: newUserName, role: newUserRole }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? "create_failed");
+      }
+      toast.success("Usuário criado");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      setNewUserName("");
+      setNewUserRole(null);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(`Erro: ${err?.message ?? err}`);
+    }
+  };
+
+  const toggleBlock = async (u: any) => {
+    try {
+      const blocked = u.subscription_status === "inactive";
+      const res = await fetch(`/api/admin/users/${u.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ subscription_status: blocked ? "free" : "inactive" }),
+      });
+      if (!res.ok) throw new Error("failed");
+      toast.success(blocked ? "Usuário desbloqueado" : "Usuário bloqueado");
+      fetchUsers();
+    } catch (err) {
+      toast.error("Não foi possível atualizar usuário");
+    }
+  };
 
   if (!showAdminPanel) return null;
 
@@ -98,6 +158,7 @@ export function AdminControlPanel() {
             { id: "plans", label: "Planos & Layouts", icon: Crown },
             { id: "mascot", label: "Mascote Unify", icon: Sparkles },
             { id: "features", label: "Recursos & IA", icon: Zap },
+            { id: "users", label: "Usuários", icon: Users },
             { id: "content", label: "Cadastros", icon: Layers },
           ].map((tab) => (
             <button
@@ -321,6 +382,61 @@ export function AdminControlPanel() {
                       />
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB X: USERS MANAGEMENT */}
+          {activeTab === "users" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Gerenciar Usuários</h3>
+                  <p className="text-[11px] text-muted-foreground">Crie contas de teste, veja usuários e bloqueie logins.</p>
+                </div>
+                <button onClick={fetchUsers} className="rounded-full border border-red-700/60 bg-red-950/40 px-3 py-1 text-[11px] font-semibold text-red-200">Atualizar</button>
+              </div>
+
+              <div className="grid gap-3">
+                <div className="rounded-2xl border border-red-900/30 bg-[#121011] p-4">
+                  <h4 className="text-sm font-bold text-white">Criar usuário de teste</h4>
+                  <div className="mt-3 grid gap-2">
+                    <input value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} placeholder="email@example.com" className="rounded-xl border border-gray-800 bg-black px-3 py-2 text-sm text-white" />
+                    <input value={newUserPassword} onChange={(e) => setNewUserPassword(e.target.value)} placeholder="senha" className="rounded-xl border border-gray-800 bg-black px-3 py-2 text-sm text-white" />
+                    <input value={newUserName} onChange={(e) => setNewUserName(e.target.value)} placeholder="Nome (opcional)" className="rounded-xl border border-gray-800 bg-black px-3 py-2 text-sm text-white" />
+                    <div className="flex gap-2">
+                      <select value={newUserRole ?? ""} onChange={(e) => setNewUserRole(e.target.value || null)} className="rounded-xl border border-gray-800 bg-black px-3 py-2 text-sm text-white">
+                        <option value="">Nenhum</option>
+                        <option value="admin">admin</option>
+                        <option value="user">user</option>
+                      </select>
+                      <button onClick={createTestUser} className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white">Criar</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-red-900/30 bg-[#121011] p-4">
+                  <h4 className="text-sm font-bold text-white">Usuários Cadastrados</h4>
+                  <div className="mt-3 space-y-2">
+                    {loadingUsers ? (
+                      <div className="text-sm text-gray-400">Carregando...</div>
+                    ) : users.length === 0 ? (
+                      <div className="text-sm text-gray-400">Nenhum usuário encontrado.</div>
+                    ) : (
+                      users.map((u) => (
+                        <div key={u.id} className="flex items-center justify-between rounded-xl border border-gray-800 bg-[#0f0d0e] p-3">
+                          <div>
+                            <div className="text-sm font-bold text-white">{u.display_name ?? u.id}</div>
+                            <div className="text-xs text-gray-400">{u.subscription_status} · {u.roles?.join(", ")}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => toggleBlock(u)} className="rounded-full border border-red-700/50 px-3 py-1 text-xs font-semibold text-red-200">{u.subscription_status === 'inactive' ? 'Desbloquear' : 'Bloquear'}</button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

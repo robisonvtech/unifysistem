@@ -27,7 +27,9 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as TrackTokenRouteImport } from './routes/track.$token'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
 import { Route as AuthenticatedOrdersNewRouteImport } from './routes/_authenticated/orders.new'
+import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
 import { Route as ApiCaktoWebhookRouteImport } from './routes/api/cakto/webhook'
+import { Route as ApiAdminUsersIdRouteImport } from './routes/api/admin/users.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -118,10 +120,20 @@ const AuthenticatedOrdersNewRoute = AuthenticatedOrdersNewRouteImport.update({
   path: '/new',
   getParentRoute: () => AuthenticatedOrdersRoute,
 } as any)
+const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
+  id: '/api/admin/users',
+  path: '/api/admin/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCaktoWebhookRoute = ApiCaktoWebhookRouteImport.update({
   id: '/api/cakto/webhook',
   path: '/api/cakto/webhook',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminUsersIdRoute = ApiAdminUsersIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminUsersRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -142,7 +154,9 @@ export interface FileRoutesByFullPath {
   '/track/$token': typeof TrackTokenRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -162,7 +176,9 @@ export interface FileRoutesByTo {
   '/track/$token': typeof TrackTokenRoute
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -184,7 +200,9 @@ export interface FileRoutesById {
   '/track/$token': typeof TrackTokenRoute
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/orders/new': typeof AuthenticatedOrdersNewRoute
+  '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
+  '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -206,7 +224,9 @@ export interface FileRouteTypes {
     | '/track/$token'
     | '/orders/$id'
     | '/orders/new'
+    | '/api/admin/users'
     | '/api/cakto/webhook'
+    | '/api/admin/users/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -226,7 +246,9 @@ export interface FileRouteTypes {
     | '/track/$token'
     | '/orders/$id'
     | '/orders/new'
+    | '/api/admin/users'
     | '/api/cakto/webhook'
+    | '/api/admin/users/$id'
   id:
     | '__root__'
     | '/'
@@ -247,7 +269,9 @@ export interface FileRouteTypes {
     | '/track/$token'
     | '/_authenticated/orders/$id'
     | '/_authenticated/orders/new'
+    | '/api/admin/users'
     | '/api/cakto/webhook'
+    | '/api/admin/users/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -256,6 +280,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrackTokenRoute: typeof TrackTokenRoute
+  ApiAdminUsersRoute: typeof ApiAdminUsersRouteWithChildren
   ApiCaktoWebhookRoute: typeof ApiCaktoWebhookRoute
 }
 
@@ -387,12 +412,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersNewRouteImport
       parentRoute: typeof AuthenticatedOrdersRoute
     }
+    '/api/admin/users': {
+      id: '/api/admin/users'
+      path: '/api/admin/users'
+      fullPath: '/api/admin/users'
+      preLoaderRoute: typeof ApiAdminUsersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/cakto/webhook': {
       id: '/api/cakto/webhook'
       path: '/api/cakto/webhook'
       fullPath: '/api/cakto/webhook'
       preLoaderRoute: typeof ApiCaktoWebhookRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/users/$id': {
+      id: '/api/admin/users/$id'
+      path: '/$id'
+      fullPath: '/api/admin/users/$id'
+      preLoaderRoute: typeof ApiAdminUsersIdRouteImport
+      parentRoute: typeof ApiAdminUsersRoute
     }
   }
 }
@@ -441,12 +480,25 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiAdminUsersRouteChildren {
+  ApiAdminUsersIdRoute: typeof ApiAdminUsersIdRoute
+}
+
+const ApiAdminUsersRouteChildren: ApiAdminUsersRouteChildren = {
+  ApiAdminUsersIdRoute: ApiAdminUsersIdRoute,
+}
+
+const ApiAdminUsersRouteWithChildren = ApiAdminUsersRoute._addFileChildren(
+  ApiAdminUsersRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   TrackTokenRoute: TrackTokenRoute,
+  ApiAdminUsersRoute: ApiAdminUsersRouteWithChildren,
   ApiCaktoWebhookRoute: ApiCaktoWebhookRoute,
 }
 export const routeTree = rootRouteImport
