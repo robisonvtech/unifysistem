@@ -65,7 +65,7 @@ export const Route = createFileRoute("/api/cakto/webhook")({
 
         if (!ACTIVE_EVENTS.has(event) && !REVOKED_EVENTS.has(event)) return new Response(null, { status: 204 });
 
-        const { error } = await supabaseAdmin.rpc("set_cakto_subscription_status", {
+        const { error } = await (supabaseAdmin.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ error: { message: string } | null }>)("set_cakto_subscription_status", {
           _email: email,
           _status: status === "inactive" ? "inactive" : status,
           _product_id: productId,

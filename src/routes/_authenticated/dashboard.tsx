@@ -34,9 +34,33 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
+interface Metrics {
+  open: number;
+  in_repair: number;
+  awaiting_part: number;
+  awaiting_approval: number;
+  ready: number;
+  delivered_month: number;
+  revenue_month_cents: number;
+  avg_repair_days: number;
+}
+
+interface RecentOrder {
+  id: string;
+  number: number;
+  status: OrderStatus;
+  created_at: string;
+  customers?: { name: string } | null;
+  devices?: { brand: string; model: string } | null;
+}
+
+const PLAN_LABEL: Record<string, string> = { start: "START", pro: "PRO", elite: "ELITE" };
+
 function DashboardPage() {
-  const { plan, label } = usePlan();
-  if (plan === "elite") return <EliteDashboard />;
+  const { plan } = usePlan();
+  const planName: string = plan;
+  const label = PLAN_LABEL[planName] ?? "START";
+  if (planName === "elite") return <EliteDashboard />;
 
   const [m, setM] = useState<Metrics | null>(null);
   const [recent, setRecent] = useState<RecentOrder[]>([]);
@@ -118,11 +142,11 @@ function DashboardPage() {
             <div className="mb-1 flex items-center gap-2">
               <span className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider",
-                plan === "elite" && "bg-primary/15 text-primary elite-glow",
-                plan === "pro" && "gradient-primary text-primary-foreground",
-                plan === "start" && "bg-muted text-muted-foreground",
+                planName === "elite" && "bg-primary/15 text-primary elite-glow",
+                planName === "pro" && "gradient-primary text-primary-foreground",
+                planName === "start" && "bg-muted text-muted-foreground",
               )}>
-                {plan === "elite" && <Sparkles className="h-2.5 w-2.5" />}
+                {planName === "elite" && <Sparkles className="h-2.5 w-2.5" />}
                 {label}
               </span>
               <span className="text-[11px] text-muted-foreground">{formatDate(new Date())}</span>
@@ -134,7 +158,7 @@ function DashboardPage() {
             <p className="mt-0.5 text-xs text-muted-foreground">Aqui está sua bancada hoje.</p>
           </div>
           <div className="shrink-0">
-            <UnifyMascot size={72} state="idle" aura={plan !== "start"} elite={plan === "elite"} />
+            <UnifyMascot size={72} state="idle" aura={planName !== "start"} elite={planName === "elite"} />
           </div>
         </header>
 
@@ -180,7 +204,7 @@ function DashboardPage() {
               className={cn(
                 "relative overflow-hidden rounded-2xl border border-border bg-card p-3.5 transition",
                 "hover:border-primary/40",
-                plan === "elite" && "hover:shadow-[0_0_24px_oklch(0.62_0.26_27.5/0.25)]",
+                planName === "elite" && "hover:shadow-[0_0_24px_oklch(0.62_0.26_27.5/0.25)]",
               )}
             >
               <div className="flex items-center justify-between">
@@ -236,8 +260,8 @@ function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <Badge variant="outline" className={cn(STATUS_COLOR[o.status], "shrink-0 text-[10px]")}>
-                      {STATUS_LABEL[o.status]}
+                    <Badge variant="outline" className={cn(STATUS_COLOR[o.status as OrderStatus], "shrink-0 text-[10px]")}>
+                      {STATUS_LABEL[o.status as OrderStatus]}
                     </Badge>
                   </Link>
                 </li>

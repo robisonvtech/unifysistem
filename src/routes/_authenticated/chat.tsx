@@ -3,10 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendChat } from "@/lib/ai-chat.functions";
+import { streamChat, transcribeAudio, fileToDataUrl, ACCEPTED_IMAGE, ACCEPTED_DOC } from "@/services/ai/client";
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock, Mic, Square, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/chat")({
   component: ChatPage,
 });
 
-interface Attachment { type: "image"; dataUrl: string }
+interface Attachment { type: "image" | "file"; dataUrl: string; filename?: string; mimeType?: string }
 interface UIMessage {
   id: string;
   role: "user" | "assistant";
@@ -158,15 +159,12 @@ function ChatPage() {
     const arr = Array.from(files).slice(0, 4);
     const results: Attachment[] = [];
     for (const f of arr) {
-      if (!f.type.startsWith("image/")) continue;
-      if (f.size > 8 * 1024 * 1024) { toast.error(`${f.name}: imagem acima de 8MB.`); continue; }
-      const dataUrl = await new Promise<string>((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(r.result as string);
-        r.onerror = () => rej(r.error);
-        r.readAsDataURL(f);
-      });
-      results.push({ type: "image", dataUrl });
+      const isImage = ACCEPTED_IMAGE.includes(f.type) || f.type.startsWith("image/");
+      const isDoc = ACCEPTED_DOC.includes(f.type);
+      if (!isImage && !isDoc) { toast.error(`${f.name}: formato não suportado.`); continue; }
+      if (f.size > 12 * 1024 * 1024) { toast.error(`${f.name}: arquivo acima de 12MB.`); continue; }
+      const dataUrl = await fileToDataUrl(f);
+      results.push({ type: isImage ? "image" : "file", dataUrl, filename: f.name, mimeType: f.type });
     }
     setAttachments((prev) => [...prev, ...results].slice(0, 4));
   }
@@ -202,28 +200,43 @@ function ChatPage() {
       }
 
       setState("typing");
-      const payload = {
-        messages: nextMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          attachments: m.attachments,
-        })),
-        skillLevel,
-      };
-      const result = await send({ data: payload });
+      const turns = nextMessages.map((m) => ({
+        role: m.role,
+        content: m.content,
+        attachments: m.attachments,
+      }));
 
+      const assistantId = crypto.randomUUID();
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
 
-      const assistantMsg: UIMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: result.content,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
+      let answer = "";
+      try {
+        answer = await streamChat(
+          { messages: turns, skillLevel, conversationId: convId },
+          {
+            onDelta: (chunk) => {
+              answer += chunk;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, content: m.content + chunk } : m)),
+              );
+            },
+            onError: (message) => toast.error(message),
+          },
+        );
+      } catch {
+        // Fallback: non-streaming server function
+        const result = await send({ data: { messages: turns, skillLevel, conversationId: convId } });
+        answer = result.content;
+        setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: answer } : m)));
+      }
+
+      if (!answer.trim()) throw new Error("A IA não retornou resposta.");
+
       await supabase.from("messages").insert({
         conversation_id: convId,
         user_id: userId!,
         role: "assistant",
-        content: assistantMsg.content,
+        content: answer,
       });
       setState("success");
       setTimeout(() => setState("idle"), 1400);
