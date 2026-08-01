@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_logs: {
+        Row: {
+          completion_tokens: number
+          conversation_id: string | null
+          cost_usd: number | null
+          created_at: string
+          error_message: string | null
+          fallback_used: boolean
+          id: string
+          latency_ms: number
+          model: string
+          operation: string
+          prompt_tokens: number
+          provider: string
+          status: string
+          total_tokens: number
+          user_id: string | null
+        }
+        Insert: {
+          completion_tokens?: number
+          conversation_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          fallback_used?: boolean
+          id?: string
+          latency_ms?: number
+          model: string
+          operation: string
+          prompt_tokens?: number
+          provider: string
+          status?: string
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Update: {
+          completion_tokens?: number
+          conversation_id?: string | null
+          cost_usd?: number | null
+          created_at?: string
+          error_message?: string | null
+          fallback_used?: boolean
+          id?: string
+          latency_ms?: number
+          model?: string
+          operation?: string
+          prompt_tokens?: number
+          provider?: string
+          status?: string
+          total_tokens?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversations: {
         Row: {
           created_at: string
