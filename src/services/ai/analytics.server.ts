@@ -45,11 +45,12 @@ export async function logUsage(record: AIUsageRecord) {
       `[ai] ${record.operation} provider=${record.provider} model=${record.model} tokens=${record.totalTokens} latency=${record.latencyMs}ms cost=${record.costUsd?.toFixed(6) ?? "n/a"} status=${record.status}`,
     );
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await (
-      supabaseAdmin.from("ai_usage_logs") as unknown as {
-        insert: (row: Record<string, unknown>) => Promise<{ error: unknown }>;
+    const table = (
+      supabaseAdmin as unknown as {
+        from: (name: string) => { insert: (row: Record<string, unknown>) => Promise<{ error: unknown }> };
       }
-    ).insert({
+    ).from("ai_usage_logs");
+    await table.insert({
       user_id: record.userId,
       conversation_id: record.conversationId ?? null,
       provider: record.provider,
