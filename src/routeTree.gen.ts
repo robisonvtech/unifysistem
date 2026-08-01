@@ -26,6 +26,9 @@ import { Route as AuthenticatedCustomersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCoursesRouteImport } from './routes/_authenticated/courses'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as ApiCaktoWebhookRouteImport } from './routes/api/cakto/webhook'
+import { Route as ApiAiTranscribeRouteImport } from './routes/api/ai/transcribe'
+import { Route as ApiAiSpeechRouteImport } from './routes/api/ai/speech'
+import { Route as ApiAiChatRouteImport } from './routes/api/ai/chat'
 import { Route as ApiAdminUsersRouteImport } from './routes/api/admin/users'
 import { Route as AuthenticatedOrdersNewRouteImport } from './routes/_authenticated/orders.new'
 import { Route as AuthenticatedOrdersIdRouteImport } from './routes/_authenticated/orders.$id'
@@ -115,6 +118,21 @@ const ApiCaktoWebhookRoute = ApiCaktoWebhookRouteImport.update({
   path: '/api/cakto/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiTranscribeRoute = ApiAiTranscribeRouteImport.update({
+  id: '/api/ai/transcribe',
+  path: '/api/ai/transcribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiSpeechRoute = ApiAiSpeechRouteImport.update({
+  id: '/api/ai/speech',
+  path: '/api/ai/speech',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiChatRoute = ApiAiChatRouteImport.update({
+  id: '/api/ai/chat',
+  path: '/api/ai/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminUsersRoute = ApiAdminUsersRouteImport.update({
   id: '/api/admin/users',
   path: '/api/admin/users',
@@ -155,6 +173,9 @@ export interface FileRoutesByFullPath {
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
   '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
+  '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/speech': typeof ApiAiSpeechRoute
+  '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
   '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
@@ -177,6 +198,9 @@ export interface FileRoutesByTo {
   '/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/orders/new': typeof AuthenticatedOrdersNewRoute
   '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
+  '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/speech': typeof ApiAiSpeechRoute
+  '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
   '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
@@ -201,6 +225,9 @@ export interface FileRoutesById {
   '/_authenticated/orders/$id': typeof AuthenticatedOrdersIdRoute
   '/_authenticated/orders/new': typeof AuthenticatedOrdersNewRoute
   '/api/admin/users': typeof ApiAdminUsersRouteWithChildren
+  '/api/ai/chat': typeof ApiAiChatRoute
+  '/api/ai/speech': typeof ApiAiSpeechRoute
+  '/api/ai/transcribe': typeof ApiAiTranscribeRoute
   '/api/cakto/webhook': typeof ApiCaktoWebhookRoute
   '/api/admin/users/$id': typeof ApiAdminUsersIdRoute
 }
@@ -225,6 +252,9 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/orders/new'
     | '/api/admin/users'
+    | '/api/ai/chat'
+    | '/api/ai/speech'
+    | '/api/ai/transcribe'
     | '/api/cakto/webhook'
     | '/api/admin/users/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -247,6 +277,9 @@ export interface FileRouteTypes {
     | '/orders/$id'
     | '/orders/new'
     | '/api/admin/users'
+    | '/api/ai/chat'
+    | '/api/ai/speech'
+    | '/api/ai/transcribe'
     | '/api/cakto/webhook'
     | '/api/admin/users/$id'
   id:
@@ -270,6 +303,9 @@ export interface FileRouteTypes {
     | '/_authenticated/orders/$id'
     | '/_authenticated/orders/new'
     | '/api/admin/users'
+    | '/api/ai/chat'
+    | '/api/ai/speech'
+    | '/api/ai/transcribe'
     | '/api/cakto/webhook'
     | '/api/admin/users/$id'
   fileRoutesById: FileRoutesById
@@ -281,6 +317,9 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   TrackTokenRoute: typeof TrackTokenRoute
   ApiAdminUsersRoute: typeof ApiAdminUsersRouteWithChildren
+  ApiAiChatRoute: typeof ApiAiChatRoute
+  ApiAiSpeechRoute: typeof ApiAiSpeechRoute
+  ApiAiTranscribeRoute: typeof ApiAiTranscribeRoute
   ApiCaktoWebhookRoute: typeof ApiCaktoWebhookRoute
 }
 
@@ -405,6 +444,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCaktoWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/transcribe': {
+      id: '/api/ai/transcribe'
+      path: '/api/ai/transcribe'
+      fullPath: '/api/ai/transcribe'
+      preLoaderRoute: typeof ApiAiTranscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/speech': {
+      id: '/api/ai/speech'
+      path: '/api/ai/speech'
+      fullPath: '/api/ai/speech'
+      preLoaderRoute: typeof ApiAiSpeechRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/chat': {
+      id: '/api/ai/chat'
+      path: '/api/ai/chat'
+      fullPath: '/api/ai/chat'
+      preLoaderRoute: typeof ApiAiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/users': {
       id: '/api/admin/users'
       path: '/api/admin/users'
@@ -499,6 +559,9 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   TrackTokenRoute: TrackTokenRoute,
   ApiAdminUsersRoute: ApiAdminUsersRouteWithChildren,
+  ApiAiChatRoute: ApiAiChatRoute,
+  ApiAiSpeechRoute: ApiAiSpeechRoute,
+  ApiAiTranscribeRoute: ApiAiTranscribeRoute,
   ApiCaktoWebhookRoute: ApiCaktoWebhookRoute,
 }
 export const routeTree = rootRouteImport
