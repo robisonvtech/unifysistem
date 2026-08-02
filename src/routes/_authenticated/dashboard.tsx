@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { UnifyMascot } from "@/components/UnifyMascot";
 import { usePlan } from "@/context/PlanContext";
 import { EliteDashboard } from "@/components/dashboards/EliteDashboard";
+import { ProDashboard } from "@/components/dashboards/ProDashboard";
+import { StartDashboard } from "@/components/dashboards/StartDashboard";
 import { cn } from "@/lib/utils";
 import {
   ClipboardList,
@@ -37,6 +39,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const { plan, label } = usePlan();
   if (plan === "elite") return <EliteDashboard />;
+  if (plan === "pro") return <ProDashboard />;
+  if (plan === "start") return <StartDashboard />;
 
   const [m, setM] = useState<Metrics | null>(null);
   const [recent, setRecent] = useState<RecentOrder[]>([]);
