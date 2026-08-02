@@ -81,7 +81,7 @@ export const Route = createFileRoute("/api/admin/users")({
 
           // optional role insert
           if (role) {
-            await supabaseAdmin.from("user_roles").insert({ user_id: user.id, role });
+            await supabaseAdmin.from("user_roles").insert({ user_id: user.id, role: role as "admin" | "user" });
           }
 
           return new Response(JSON.stringify({ user: { id: user.id, email } }), { status: 201, headers: { "content-type": "application/json" } });
