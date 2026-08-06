@@ -121,18 +121,31 @@ function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-      <div className="mb-6 flex flex-col items-center gap-2">
-        <UnifyMascot size={88} state="idle" />
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">Repair<span className="text-primary">AI</span></h1>
-        <p className="text-sm text-muted-foreground">Assistente Unify para tecnicos</p>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-10">
+      {/* ambient brand glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 right-[-10%] h-72 w-72 rounded-full bg-primary/10 blur-[110px]"
+      />
+
+      <div className="relative mb-7 flex flex-col items-center gap-1 text-center">
+        <UnifyMascot size={96} state="idle" />
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+          Repair<span className="text-primary">AI</span>
+        </h1>
+        <p className="text-sm text-muted-foreground">Assistente Unify para técnicos</p>
       </div>
 
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="relative w-full max-w-sm rounded-3xl border border-border/60 bg-card/80 p-6 shadow-xl backdrop-blur-xl">
         {paymentRequired && (
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
-            <p className="font-medium">Assinatura necessaria</p>
+          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
+            <p className="font-medium">Assinatura necessária</p>
             <p className="mt-1 text-xs text-muted-foreground">Escolha o plano e continue para o checkout.</p>
+
             <div className="mt-3 space-y-2">
               {checkoutPlans.map((plan) => (
                 <button
