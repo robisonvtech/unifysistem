@@ -61,7 +61,7 @@ function AuthPage() {
 
   function openCheckout(plan: "basic" | "pro" | "elite" = selectedPlan) {
     const planConfig = checkoutPlans.find((item) => item.key === plan);
-    if (!planConfig?.url) return toast.error(`Checkout do plano ${planConfig?.label ?? plan} ainda nao foi configurado.`);
+    if (!planConfig?.url) return toast.error(`Checkout do plano ${planConfig?.label ?? plan} ainda não foi configurado.`);
     window.location.assign(planConfig.url);
   }
 
@@ -85,7 +85,7 @@ function AuthPage() {
     if (!data.user || !(await canAccess(data.user.id))) {
       await supabase.auth.signOut();
       setPaymentRequired(true);
-      return toast.error("Sua assinatura ainda nao esta ativa.");
+      return toast.error("Sua assinatura ainda não está ativa.");
     }
     toast.success("Bem-vindo!");
     navigate({ to: "/chat" });
@@ -117,7 +117,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("E-mail de redefinicao enviado.");
+    toast.success("E-mail de redefinição enviado.");
   }
 
   return (
@@ -152,7 +152,7 @@ function AuthPage() {
                   key={plan.key}
                   type="button"
                   onClick={() => setSelectedPlan(plan.key as "basic" | "pro" | "elite")}
-                  className={`w-full rounded-lg border px-3 py-2 text-left ${selectedPlan === plan.key ? "border-primary bg-primary/10" : "border-border bg-background"}`}
+                  className={`w-full rounded-xl border px-3 py-2 text-left transition-colors ${selectedPlan === plan.key ? "border-primary bg-primary/10" : "border-border bg-background"}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{plan.label}</span>
@@ -195,7 +195,7 @@ function AuthPage() {
           </TabsContent>
         </Tabs>
       </div>
-      <p className="mt-6 text-center text-xs text-muted-foreground">Ao continuar, voce concorda com nossos termos de uso. <Link to="/" className="underline">Voltar</Link></p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">Ao continuar, você concorda com nossos termos de uso. <Link to="/" className="underline">Voltar</Link></p>
     </div>
   );
 }
