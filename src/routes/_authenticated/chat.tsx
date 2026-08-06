@@ -7,7 +7,7 @@ import { streamChat, transcribeAudio, fileToDataUrl, ACCEPTED_IMAGE, ACCEPTED_DO
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock, Mic, Square, FileText } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, Plus, GraduationCap, Lock, Mic, Square, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
@@ -74,6 +74,9 @@ function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [skillLevel, setSkillLevel] = useState<SkillLevel>("auto");
+  const [recording, setRecording] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
