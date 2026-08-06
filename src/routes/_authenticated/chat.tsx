@@ -7,7 +7,7 @@ import { streamChat, transcribeAudio, fileToDataUrl, ACCEPTED_IMAGE, ACCEPTED_DO
 import { UnifyMascot, type UnifyState } from "@/components/UnifyMascot";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, GraduationCap, Lock, Mic, Square, FileText } from "lucide-react";
+import { Send, ImagePlus, X, Wrench, DollarSign, BookOpen, Cpu, Search, Droplets, Zap, Smartphone, Battery, Camera, Plus, GraduationCap, Lock, Mic, Square, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import MarkdownLite from "@/components/MarkdownLite";
@@ -74,6 +74,9 @@ function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [skillLevel, setSkillLevel] = useState<SkillLevel>("auto");
+  const [recording, setRecording] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -251,161 +254,261 @@ function ChatPage() {
   }
 
   const empty = messages.length === 0;
+  const busy = state === "thinking" || state === "typing" || state === "scanning";
+
+  function newConversation() {
+    setMessages([]);
+    setConversationId(null);
+    setAttachments([]);
+    setInput("");
+    setState("idle");
+    textareaRef.current?.focus();
+  }
+
+  async function toggleRecording() {
+    if (recording) {
+      recorderRef.current?.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+      rec.ondataavailable = (e) => chunks.push(e.data);
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setRecording(false);
+        try {
+          setState("thinking");
+          const text = await transcribeAudio(new Blob(chunks, { type: "audio/webm" }));
+          if (text) setInput((prev) => (prev ? `${prev} ${text}` : text));
+          textareaRef.current?.focus();
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : "Falha ao transcrever.");
+        } finally {
+          setState("idle");
+        }
+      };
+      recorderRef.current = rec;
+      rec.start();
+      setRecording(true);
+    } catch {
+      toast.error("Não foi possível acessar o microfone.");
+    }
+  }
 
   return (
-    <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col bg-[radial-gradient(circle_at_top,_rgba(191,0,0,0.08),_transparent_48%)]">
+    <div className="relative flex h-[calc(100dvh-4.5rem)] flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(191,0,0,0.09),_transparent_55%)]">
       {/* Header */}
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border/80 bg-background/90 px-4 py-3 shadow-[0_8px_30px_rgba(0,0,0,0.06)] backdrop-blur-xl">
-        <UnifyMascot size={36} state={state} />
-        <div className="flex-1">
-          <h1 className="text-sm font-semibold leading-tight">Unify</h1>
-          <p className="text-xs text-muted-foreground">
-            {state === "thinking" && "Analisando..."}
-            {state === "typing" && "Digitando..."}
-            {state === "scanning" && "Analisando imagem..."}
-            {state === "success" && "Diagnóstico concluído"}
-            {state === "error" && "Ocorreu um erro"}
-            {(state === "idle" || state === "listening" || state === "learning") && "IA especialista em reparo de celulares"}
-          </p>
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto grid w-full max-w-4xl grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:px-4">
+          <div className="relative shrink-0">
+            <UnifyMascot size={36} state={state} />
+            <span
+              className={cn(
+                "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background",
+                busy ? "bg-primary animate-pulse" : state === "error" ? "bg-destructive" : "bg-emerald-500",
+              )}
+            />
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-sm font-semibold leading-tight">Unify</h1>
+            <p className="truncate text-xs text-muted-foreground">
+              {state === "thinking" && "Analisando..."}
+              {state === "typing" && "Digitando..."}
+              {state === "scanning" && "Analisando imagem..."}
+              {state === "success" && "Diagnóstico concluído"}
+              {state === "error" && "Ocorreu um erro"}
+              {(state === "idle" || state === "listening" || state === "learning") && "IA especialista em reparo"}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {!empty && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={newConversation}
+                aria-label="Nova conversa"
+                title="Nova conversa"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-full px-3 text-xs">
+                  <GraduationCap className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline sm:inline">{SKILL_LABEL[skillLevel]}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Nível de resposta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={skillLevel} onValueChange={(v) => updateSkill(v as SkillLevel)}>
+                  <DropdownMenuRadioItem value="auto">
+                    <div className="flex flex-col">
+                      <span className="text-sm">Automático</span>
+                      <span className="text-xs text-muted-foreground">Unify detecta seu nível</span>
+                    </div>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="beginner">
+                    <div className="flex flex-col">
+                      <span className="text-sm">Iniciante</span>
+                      <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
+                    </div>
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="advanced" disabled={!canPremium}>
+                    <div className="flex flex-1 items-start justify-between gap-2">
+                      <div className="flex flex-col">
+                        <span className="text-sm">Avançado</span>
+                        <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
+                      </div>
+                      {!canPremium && <Lock className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />}
+                    </div>
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-8 gap-1.5 rounded-full px-3 text-xs">
-              <GraduationCap className="h-3.5 w-3.5" />
-              {SKILL_LABEL[skillLevel]}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Nível de resposta</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup value={skillLevel} onValueChange={(v) => updateSkill(v as SkillLevel)}>
-              <DropdownMenuRadioItem value="auto">
-                <div className="flex flex-col">
-                  <span className="text-sm">Automático</span>
-                  <span className="text-xs text-muted-foreground">Unify detecta seu nível</span>
-                </div>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="beginner">
-                <div className="flex flex-col">
-                  <span className="text-sm">Iniciante</span>
-                  <span className="text-xs text-muted-foreground">Linguagem simples, ensinando cada termo</span>
-                </div>
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="advanced" disabled={!canPremium}>
-                <div className="flex flex-1 items-start justify-between gap-2">
-                  <div className="flex flex-col">
-                    <span className="text-sm">Avançado</span>
-                    <span className="text-xs text-muted-foreground">Placa, tensões, microsolda</span>
-                  </div>
-                  {!canPremium && <Lock className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />}
-                </div>
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </header>
 
-
       {/* Messages */}
-      <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-4 px-4 py-4">
-        {empty ? (
-          <div className="flex flex-col items-center rounded-3xl border border-border/70 bg-card/70 p-6 text-center shadow-sm backdrop-blur">
-            <UnifyMascot size={120} state="idle" />
-            <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground">Como posso te ajudar hoje?</h2>
-            <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-              Descreva o defeito, envie fotos ou áudio — a Unify diagnostica com atenção e linguagem mais humana.
-            </p>
-            <div className="mt-6 grid w-full grid-cols-2 gap-2 sm:grid-cols-3">
-              {QUICK_ACTIONS.map((a) => (
-                <button
-                  key={a.label}
-                  onClick={() => { setInput(a.prompt); textareaRef.current?.focus(); }}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/70 bg-card/90 p-3 text-xs font-medium transition hover:border-primary/40 hover:bg-accent/40"
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                    <a.icon className="h-4 w-4" />
-                  </span>
-                  <span className="text-center leading-tight">{a.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          messages.map((m) => <MessageBubble key={m.id} m={m} />)
-        )}
-        {(state === "thinking" || state === "typing" || state === "scanning") && (
-          <div className="flex items-end gap-2 animate-fade-up">
-            <UnifyMascot size={32} state={state} aura />
-            <div className="rounded-2xl rounded-bl-sm bg-muted px-4 py-3">
-              <div className="flex gap-1">
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "150ms" }} />
-                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "300ms" }} />
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain scroll-smooth">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-3 px-3 py-4 sm:px-4 sm:gap-4">
+          {empty ? (
+            <div className="flex flex-col items-center py-4 text-center">
+              <UnifyMascot size={112} state="idle" aura />
+              <h2 className="mt-4 text-2xl font-bold tracking-tight">Como posso te ajudar hoje?</h2>
+              <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+                Descreva o defeito, envie fotos ou fale por áudio — a Unify diagnostica com você.
+              </p>
+
+              <div className="mt-6 w-full">
+                <p className="mb-2 px-1 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Atalhos rápidos
+                </p>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                  {QUICK_ACTIONS.map((a) => (
+                    <button
+                      key={a.label}
+                      onClick={() => { setInput(a.prompt); textareaRef.current?.focus(); }}
+                      className="group flex items-center gap-2.5 rounded-2xl border border-border/60 bg-card/80 p-2.5 text-left text-xs font-medium shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+                        <a.icon className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 leading-tight">{a.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        <div ref={bottomRef} />
+          ) : (
+            messages.map((m) => <MessageBubble key={m.id} m={m} />)
+          )}
+
+          {busy && (
+            <div className="flex items-end gap-2 animate-fade-up">
+              <UnifyMascot size={30} state={state} aura />
+              <div className="rounded-2xl rounded-bl-md border border-border/60 bg-card/90 px-4 py-3 shadow-sm">
+                <div className="flex gap-1">
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "150ms" }} />
+                  <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "300ms" }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={bottomRef} className="h-1" />
+        </div>
       </div>
 
-
       {/* Composer */}
-      <div className="sticky bottom-0 border-t border-border/80 bg-background/95 px-3 py-3 shadow-[0_-8px_30px_rgba(0,0,0,0.05)] backdrop-blur">
-        {attachments.length > 0 && (
-          <div className="mb-2 flex gap-2 overflow-x-auto">
-            {attachments.map((a, i) => (
-              <div key={i} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border">
-                <img src={a.dataUrl} alt="anexo" className="h-full w-full object-cover" />
-                <button
-                  onClick={() => setAttachments((p) => p.filter((_, idx) => idx !== i))}
-                  className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
+      <div className="sticky bottom-0 z-30 border-t border-border/60 bg-background/80 px-3 pb-3 pt-2.5 backdrop-blur-xl sm:px-4">
+        <div className="mx-auto w-full max-w-4xl">
+          {attachments.length > 0 && (
+            <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
+              {attachments.map((a, i) => (
+                <div key={i} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-border/70 bg-muted">
+                  {a.type === "image" ? (
+                    <img src={a.dataUrl} alt="anexo" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center gap-1 p-1 text-center">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <span className="line-clamp-1 text-[9px] text-muted-foreground">{a.filename}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setAttachments((p) => p.filter((_, idx) => idx !== i))}
+                    className="absolute right-0.5 top-0.5 rounded-full bg-foreground/70 p-0.5 text-background"
+                    aria-label="Remover anexo"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-end gap-1.5 rounded-3xl border border-border/70 bg-card/90 p-1.5 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.25)] backdrop-blur transition focus-within:border-primary/50">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,application/pdf"
+              multiple
+              className="hidden"
+              onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+              onClick={() => fileRef.current?.click()}
+              aria-label="Anexar imagem ou PDF"
+            >
+              <ImagePlus className="h-5 w-5" />
+            </Button>
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
+              }}
+              placeholder="Descreva o defeito do aparelho..."
+              rows={1}
+              className="max-h-40 min-h-9 flex-1 resize-none border-0 bg-transparent px-1 py-2 text-sm shadow-none focus-visible:ring-0"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={toggleRecording}
+              className={cn(
+                "h-9 w-9 shrink-0 rounded-full text-muted-foreground hover:text-foreground",
+                recording && "bg-destructive/10 text-destructive hover:text-destructive",
+              )}
+              aria-label={recording ? "Parar gravação" : "Gravar áudio"}
+            >
+              {recording ? <Square className="h-4 w-4" /> : <Mic className="h-5 w-5" />}
+            </Button>
+            <Button
+              type="button"
+              size="icon"
+              onClick={submit}
+              disabled={busy || (!input.trim() && attachments.length === 0)}
+              className="h-9 w-9 shrink-0 rounded-full bg-primary text-primary-foreground shadow-md transition hover:scale-105 disabled:opacity-40"
+              aria-label="Enviar"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-        )}
-        <div className="flex items-end gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={() => fileRef.current?.click()}
-            aria-label="Anexar imagem"
-          >
-            <ImagePlus className="h-5 w-5" />
-          </Button>
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
-            }}
-            placeholder="Descreva o defeito..."
-            rows={1}
-            className="max-h-32 min-h-10 resize-none rounded-2xl border border-border/70 bg-muted/60 text-foreground"
-          />
-          <Button
-            type="button"
-            size="icon"
-            onClick={submit}
-            disabled={state === "thinking" || state === "typing" || (!input.trim() && attachments.length === 0)}
-            className={cn("shrink-0 rounded-full bg-primary text-primary-foreground shadow-sm")}
-            aria-label="Enviar"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
+          <p className="mt-1.5 hidden text-center text-[11px] text-muted-foreground sm:block">
+            Enter envia · Shift + Enter quebra linha
+          </p>
         </div>
       </div>
     </div>
@@ -414,25 +517,51 @@ function ChatPage() {
 
 function MessageBubble({ m }: { m: UIMessage }) {
   const isUser = m.role === "user";
+  const [copied, setCopied] = useState(false);
+
+  function copy() {
+    navigator.clipboard.writeText(m.content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
   return (
-    <div className={cn("flex items-end gap-2 animate-fade-up", isUser ? "justify-end" : "justify-start")}>
-      {!isUser && <UnifyMascot size={32} state="idle" />}
-      <div
-        className={cn(
-          "max-w-[84%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
-          isUser
-            ? "rounded-br-sm bg-[color:var(--chat-user)] text-[color:var(--chat-user-foreground)]"
-            : "rounded-bl-sm border border-border/70 bg-card/95 text-foreground",
+    <div className={cn("group flex items-end gap-2 animate-fade-up", isUser ? "justify-end" : "justify-start")}>
+      {!isUser && <UnifyMascot size={30} state="idle" />}
+      <div className="flex min-w-0 max-w-[86%] flex-col gap-1 sm:max-w-[75%]">
+        <div
+          className={cn(
+            "rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
+            isUser
+              ? "rounded-br-md bg-primary text-primary-foreground"
+              : "rounded-bl-md border border-border/60 bg-card/95 text-foreground",
+          )}
+        >
+          {m.attachments && m.attachments.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {m.attachments.map((a, i) =>
+                a.type === "image" ? (
+                  <img key={i} src={a.dataUrl} alt="" className="h-24 w-24 rounded-xl object-cover" />
+                ) : (
+                  <span key={i} className="flex items-center gap-1.5 rounded-xl bg-background/20 px-2 py-1 text-xs">
+                    <FileText className="h-3.5 w-3.5" />
+                    {a.filename ?? "documento"}
+                  </span>
+                ),
+              )}
+            </div>
+          )}
+          {isUser ? <p className="whitespace-pre-wrap break-words">{m.content}</p> : <MarkdownLite content={m.content} />}
+        </div>
+        {!isUser && m.content.trim().length > 0 && (
+          <button
+            onClick={copy}
+            className="self-start rounded-full px-2 py-0.5 text-[11px] text-muted-foreground opacity-0 transition hover:text-foreground focus:opacity-100 group-hover:opacity-100"
+          >
+            {copied ? "Copiado!" : "Copiar"}
+          </button>
         )}
-      >
-        {m.attachments && m.attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1">
-            {m.attachments.map((a, i) => (
-              <img key={i} src={a.dataUrl} alt="" className="h-24 w-24 rounded-lg object-cover" />
-            ))}
-          </div>
-        )}
-        {isUser ? <p className="whitespace-pre-wrap break-words">{m.content}</p> : <MarkdownLite content={m.content} />}
       </div>
     </div>
   );
