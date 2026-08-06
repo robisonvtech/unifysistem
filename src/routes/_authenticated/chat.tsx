@@ -30,9 +30,9 @@ const SKILL_LABEL: Record<SkillLevel, string> = {
 };
 
 export const Route = createFileRoute("/_authenticated/chat")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    c: typeof s.c === "string" ? s.c : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { c?: string } =>
+    typeof s.c === "string" ? { c: s.c } : {},
+
   head: () => ({
     meta: [
       { title: "Chat — RepairAI" },
