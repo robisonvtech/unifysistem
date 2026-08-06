@@ -101,8 +101,10 @@ function RootComponent() {
   }, [router, queryClient]);
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
-      <Toaster position="top-center" richColors />
+      <PlanProvider>
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </PlanProvider>
     </QueryClientProvider>
   );
 }
