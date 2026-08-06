@@ -61,7 +61,7 @@ function AuthPage() {
 
   function openCheckout(plan: "basic" | "pro" | "elite" = selectedPlan) {
     const planConfig = checkoutPlans.find((item) => item.key === plan);
-    if (!planConfig?.url) return toast.error(`Checkout do plano ${planConfig?.label ?? plan} ainda nao foi configurado.`);
+    if (!planConfig?.url) return toast.error(`Checkout do plano ${planConfig?.label ?? plan} ainda não foi configurado.`);
     window.location.assign(planConfig.url);
   }
 
@@ -85,7 +85,7 @@ function AuthPage() {
     if (!data.user || !(await canAccess(data.user.id))) {
       await supabase.auth.signOut();
       setPaymentRequired(true);
-      return toast.error("Sua assinatura ainda nao esta ativa.");
+      return toast.error("Sua assinatura ainda não está ativa.");
     }
     toast.success("Bem-vindo!");
     navigate({ to: "/chat" });
@@ -117,29 +117,42 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("E-mail de redefinicao enviado.");
+    toast.success("E-mail de redefinição enviado.");
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-10">
-      <div className="mb-6 flex flex-col items-center gap-2">
-        <UnifyMascot size={88} state="idle" />
-        <h1 className="mt-2 text-2xl font-bold tracking-tight">Repair<span className="text-primary">AI</span></h1>
-        <p className="text-sm text-muted-foreground">Assistente Unify para tecnicos</p>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-background px-4 py-10">
+      {/* ambient brand glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/20 blur-[100px]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-40 right-[-10%] h-72 w-72 rounded-full bg-primary/10 blur-[110px]"
+      />
+
+      <div className="relative mb-7 flex flex-col items-center gap-1 text-center">
+        <UnifyMascot size={96} state="idle" />
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight">
+          Repair<span className="text-primary">AI</span>
+        </h1>
+        <p className="text-sm text-muted-foreground">Assistente Unify para técnicos</p>
       </div>
 
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-sm">
+      <div className="relative w-full max-w-sm rounded-3xl border border-border/60 bg-card/80 p-6 shadow-xl backdrop-blur-xl">
         {paymentRequired && (
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
-            <p className="font-medium">Assinatura necessaria</p>
+          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
+            <p className="font-medium">Assinatura necessária</p>
             <p className="mt-1 text-xs text-muted-foreground">Escolha o plano e continue para o checkout.</p>
+
             <div className="mt-3 space-y-2">
               {checkoutPlans.map((plan) => (
                 <button
                   key={plan.key}
                   type="button"
                   onClick={() => setSelectedPlan(plan.key as "basic" | "pro" | "elite")}
-                  className={`w-full rounded-lg border px-3 py-2 text-left ${selectedPlan === plan.key ? "border-primary bg-primary/10" : "border-border bg-background"}`}
+                  className={`w-full rounded-xl border px-3 py-2 text-left transition-colors ${selectedPlan === plan.key ? "border-primary bg-primary/10" : "border-border bg-background"}`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium">{plan.label}</span>
@@ -182,7 +195,7 @@ function AuthPage() {
           </TabsContent>
         </Tabs>
       </div>
-      <p className="mt-6 text-center text-xs text-muted-foreground">Ao continuar, voce concorda com nossos termos de uso. <Link to="/" className="underline">Voltar</Link></p>
+      <p className="mt-6 text-center text-xs text-muted-foreground">Ao continuar, você concorda com nossos termos de uso. <Link to="/" className="underline">Voltar</Link></p>
     </div>
   );
 }
