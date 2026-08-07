@@ -48,9 +48,13 @@ export function usePlan(): PlanTheme {
     if (loading) return;
     const root = document.documentElement;
     root.setAttribute("data-plan", plan);
-    const shouldUseDark = plan === "elite" || plan === "pro";
-    root.classList.toggle("dark", shouldUseDark);
-    root.style.colorScheme = shouldUseDark ? "dark" : "light";
+    const apply = () => {
+      const stored = getStoredTheme();
+      applyTheme(stored ? stored === "dark" : plan === "elite");
+    };
+    apply();
+    window.addEventListener("unify:theme-change", apply);
+    return () => window.removeEventListener("unify:theme-change", apply);
   }, [plan, loading]);
 
   return {
