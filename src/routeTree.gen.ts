@@ -25,6 +25,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCustomersRouteImport } from './routes/_authenticated/customers'
 import { Route as AuthenticatedCoursesRouteImport } from './routes/_authenticated/courses'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedBusinessRouteImport } from './routes/_authenticated/business'
 import { Route as ApiCaktoWebhookRouteImport } from './routes/api/cakto/webhook'
 import { Route as ApiAiTranscribeRouteImport } from './routes/api/ai/transcribe'
 import { Route as ApiAiSpeechRouteImport } from './routes/api/ai/speech'
@@ -113,6 +114,11 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBusinessRoute = AuthenticatedBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiCaktoWebhookRoute = ApiCaktoWebhookRouteImport.update({
   id: '/api/cakto/webhook',
   path: '/api/cakto/webhook',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/business': typeof AuthenticatedBusinessRoute
   '/chat': typeof AuthenticatedChatRoute
   '/courses': typeof AuthenticatedCoursesRoute
   '/customers': typeof AuthenticatedCustomersRoute
@@ -183,6 +190,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/business': typeof AuthenticatedBusinessRoute
   '/chat': typeof AuthenticatedChatRoute
   '/courses': typeof AuthenticatedCoursesRoute
   '/customers': typeof AuthenticatedCustomersRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/business': typeof AuthenticatedBusinessRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/courses': typeof AuthenticatedCoursesRoute
   '/_authenticated/customers': typeof AuthenticatedCustomersRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/business'
     | '/chat'
     | '/courses'
     | '/customers'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/business'
     | '/chat'
     | '/courses'
     | '/customers'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/business'
     | '/_authenticated/chat'
     | '/_authenticated/courses'
     | '/_authenticated/customers'
@@ -437,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/business': {
+      id: '/_authenticated/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof AuthenticatedBusinessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/cakto/webhook': {
       id: '/api/cakto/webhook'
       path: '/api/cakto/webhook'
@@ -510,6 +529,7 @@ const AuthenticatedOrdersRouteWithChildren =
   AuthenticatedOrdersRoute._addFileChildren(AuthenticatedOrdersRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBusinessRoute: typeof AuthenticatedBusinessRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedCoursesRoute: typeof AuthenticatedCoursesRoute
   AuthenticatedCustomersRoute: typeof AuthenticatedCustomersRoute
@@ -524,6 +544,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBusinessRoute: AuthenticatedBusinessRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedCoursesRoute: AuthenticatedCoursesRoute,
   AuthenticatedCustomersRoute: AuthenticatedCustomersRoute,

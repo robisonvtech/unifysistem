@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ClipboardList, GraduationCap, User } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Wallet, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UnifyMascot } from "./UnifyMascot";
 
@@ -9,7 +9,7 @@ const leftItems = [
 ] as const;
 
 const rightItems = [
-  { to: "/courses", label: "Cursos", icon: GraduationCap },
+  { to: "/business", label: "Negócios", icon: Wallet },
   { to: "/profile", label: "Perfil", icon: User },
 ] as const;
 
