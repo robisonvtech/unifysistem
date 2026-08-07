@@ -7,28 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UnifyMascot } from "@/components/UnifyMascot";
 import { toast } from "sonner";
-import { hasAccessToApp } from "@/lib/subscription";
-
-const checkoutPlans = [
-  {
-    key: "basic",
-    label: "Básico",
-    url: import.meta.env.VITE_CAKTO_CHECKOUT_URL as string | undefined,
-    description: "Acesso inicial",
-  },
-  {
-    key: "pro",
-    label: "Pro",
-    url: import.meta.env.VITE_CAKTO_PRO_CHECKOUT_URL as string | undefined,
-    description: "Recursos avançados",
-  },
-  {
-    key: "elite",
-    label: "Elite",
-    url: import.meta.env.VITE_CAKTO_ELITE_CHECKOUT_URL as string | undefined,
-    description: "Acesso completo",
-  },
-];
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -48,45 +26,18 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [paymentRequired, setPaymentRequired] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"basic" | "pro" | "elite">("basic");
-
-  async function canAccess(userId: string) {
-    const [{ data: profile }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("subscription_status").eq("id", userId).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-    ]);
-    return hasAccessToApp(profile?.subscription_status) || (roles ?? []).some((role) => role.role === "admin");
-  }
-
-  function openCheckout(plan: "basic" | "pro" | "elite" = selectedPlan) {
-    const planConfig = checkoutPlans.find((item) => item.key === plan);
-    if (!planConfig?.url) return toast.error(`Checkout do plano ${planConfig?.label ?? plan} ainda não foi configurado.`);
-    window.location.assign(planConfig.url);
-  }
-
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session?.user) return;
-      if (await canAccess(data.session.user.id)) navigate({ to: "/chat" });
-      else {
-        await supabase.auth.signOut();
-        setPaymentRequired(true);
-      }
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session?.user) navigate({ to: "/chat" });
     });
   }, [navigate]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    if (!data.user || !(await canAccess(data.user.id))) {
-      await supabase.auth.signOut();
-      setPaymentRequired(true);
-      return toast.error("Sua assinatura ainda não está ativa.");
-    }
     toast.success("Bem-vindo!");
     navigate({ to: "/chat" });
   }
@@ -94,7 +45,7 @@ function AuthPage() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -104,9 +55,13 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    await supabase.auth.signOut();
-    toast.success("Conta criada. Continue para assinar.");
-    openCheckout(selectedPlan);
+    if (data.session) {
+      toast.success("Conta criada. Bem-vindo!");
+      navigate({ to: "/chat" });
+      return;
+    }
+    toast.success("Conta criada! Confirme o e-mail para entrar.");
+    setTab("login");
   }
 
   async function handleReset(e: React.FormEvent) {
@@ -141,29 +96,6 @@ function AuthPage() {
       </div>
 
       <div className="relative w-full max-w-sm rounded-3xl border border-border/60 bg-card/80 p-6 shadow-xl backdrop-blur-xl">
-        {paymentRequired && (
-          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 p-3 text-sm">
-            <p className="font-medium">Assinatura necessária</p>
-            <p className="mt-1 text-xs text-muted-foreground">Escolha o plano e continue para o checkout.</p>
-
-            <div className="mt-3 space-y-2">
-              {checkoutPlans.map((plan) => (
-                <button
-                  key={plan.key}
-                  type="button"
-                  onClick={() => setSelectedPlan(plan.key as "basic" | "pro" | "elite")}
-                  className={`w-full rounded-xl border px-3 py-2 text-left transition-colors ${selectedPlan === plan.key ? "border-primary bg-primary/10" : "border-border bg-background"}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{plan.label}</span>
-                    <span className="text-[11px] text-muted-foreground">{plan.description}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <Button type="button" variant="outline" className="mt-3 w-full" onClick={() => openCheckout(selectedPlan)}>Assinar agora</Button>
-          </div>
-        )}
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Entrar</TabsTrigger>
@@ -190,7 +122,7 @@ function AuthPage() {
               <div className="space-y-1.5"><Label htmlFor="s-name">Nome</Label><Input id="s-name" required value={name} onChange={(e) => setName(e.target.value)} /></div>
               <div className="space-y-1.5"><Label htmlFor="s-email">E-mail</Label><Input id="s-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
               <div className="space-y-1.5"><Label htmlFor="s-pw">Senha</Label><Input id="s-pw" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-              <Button className="w-full" disabled={loading}>{loading ? "Criando..." : "Criar conta e assinar"}</Button>
+              <Button className="w-full" disabled={loading}>{loading ? "Criando..." : "Criar conta grátis"}</Button>
             </form>
           </TabsContent>
         </Tabs>
