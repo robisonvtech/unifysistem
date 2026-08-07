@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Users, Package, Wallet, GraduationCap, BookOpen, History } from "lucide-react";
+import { Users, Package, Wallet, GraduationCap, BookOpen, History, BarChart3 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/more")({
   head: () => ({
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/more")({
 });
 
 const links = [
+  { to: "/business", label: "Negócios", desc: "Receita, despesa e reparos", icon: BarChart3, color: "text-primary" },
   { to: "/customers", label: "Clientes", desc: "Cadastro e histórico", icon: Users, color: "text-blue-600" },
   { to: "/inventory", label: "Estoque", desc: "Peças e movimentações", icon: Package, color: "text-orange-600" },
   { to: "/finance", label: "Financeiro", desc: "A receber, a pagar e caixa", icon: Wallet, color: "text-emerald-600" },
