@@ -36,15 +36,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const prefersDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const shouldUseDark = plan === "elite" || plan === "pro" || prefersDark;
-
-    document.documentElement.classList.toggle("dark", shouldUseDark);
-    document.documentElement.style.colorScheme = shouldUseDark ? "dark" : "light";
-
-    if (typeof window !== "undefined") {
-      localStorage.setItem("unify_theme", shouldUseDark ? "dark" : "light");
-    }
+    const apply = () => {
+      const stored = getStoredTheme();
+      applyTheme(stored ? stored === "dark" : plan === "elite");
+    };
+    apply();
+    window.addEventListener("unify:theme-change", apply);
+    return () => window.removeEventListener("unify:theme-change", apply);
   }, [plan]);
 
   return (
