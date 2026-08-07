@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UnifyMascot } from "@/components/UnifyMascot";
-import { LogOut, Save, Sparkles, Crown, Gem } from "lucide-react";
+import { LogOut, Save, Sparkles, Crown, Gem, Sun, Moon, MonitorSmartphone } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { Badge } from "@/components/ui/badge";
 import { usePlan, type Plan } from "@/hooks/usePlan";
 import { cn } from "@/lib/utils";
@@ -90,6 +91,8 @@ function ProfilePage() {
         </span>
       </section>
 
+      <ThemeSwitcher />
+
       <PlanSwitcher />
 
 
@@ -118,6 +121,39 @@ function ProfilePage() {
 
       <p className="mt-6 text-center text-xs text-muted-foreground">Unify RepairAI · v1.0</p>
     </div>
+  );
+}
+
+function ThemeSwitcher() {
+  const { theme, setTheme } = useTheme();
+  const options = [
+    { id: "light" as const, label: "Claro", icon: Sun },
+    { id: "dark" as const, label: "Escuro", icon: Moon },
+    { id: null, label: "Automático", icon: MonitorSmartphone },
+  ];
+  return (
+    <section className="mt-4 premium-card p-5">
+      <h2 className="text-sm font-semibold">Aparência</h2>
+      <p className="mb-3 text-[11px] text-muted-foreground">Escolha o tema do aplicativo.</p>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map((o) => {
+          const active = theme === o.id;
+          return (
+            <button
+              key={o.label}
+              onClick={() => setTheme(o.id)}
+              className={cn(
+                "rounded-2xl border p-3 text-center transition",
+                active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/40",
+              )}
+            >
+              <o.icon className={cn("mx-auto h-5 w-5", active ? "text-primary" : "text-muted-foreground")} />
+              <div className="mt-1.5 text-[11px] font-semibold">{o.label}</div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
