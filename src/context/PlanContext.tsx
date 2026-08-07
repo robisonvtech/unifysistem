@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { applyTheme, getStoredTheme } from "@/hooks/useTheme";
 
 export type PlanType = "start" | "pro" | "elite";
 
