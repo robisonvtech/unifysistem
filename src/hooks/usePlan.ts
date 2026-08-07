@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useEntitlements } from "./useEntitlements";
+import { applyTheme, getStoredTheme } from "./useTheme";
 
 export type Plan = "start" | "pro" | "elite";
 
