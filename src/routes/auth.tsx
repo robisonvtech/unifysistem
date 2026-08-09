@@ -9,7 +9,7 @@ import { UnifyMascot } from "@/components/UnifyMascot";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
+  head: () => ({
   head: () => ({
     meta: [
       { title: "Entrar - RepairAI" },
