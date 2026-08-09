@@ -9,8 +9,8 @@ import { UnifyMascot } from "@/components/UnifyMascot";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   head: () => ({
+
     meta: [
       { title: "Entrar - RepairAI" },
       { name: "description", content: "Entre no RepairAI para diagnosticar celulares com a IA Unify." },
