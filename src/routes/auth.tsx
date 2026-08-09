@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
-  head: () => ({
+
     meta: [
       { title: "Entrar - RepairAI" },
       { name: "description", content: "Entre no RepairAI para diagnosticar celulares com a IA Unify." },
