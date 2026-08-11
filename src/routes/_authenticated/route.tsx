@@ -2,12 +2,22 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { usePlan } from "@/hooks/usePlan";
+import { checkAccess } from "@/lib/access";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) throw redirect({ to: "/auth" });
+
+    const access = await checkAccess(data.user.id);
+    if (!access.ok) {
+      toast.error(access.message);
+      await supabase.auth.signOut();
+      throw redirect({ to: "/auth" });
+    }
+
     return { user: data.user };
   },
   component: AuthedLayout,
