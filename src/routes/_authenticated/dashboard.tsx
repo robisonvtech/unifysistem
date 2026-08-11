@@ -37,14 +37,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 interface Metrics {
-  open: number;
-  in_repair: number;
-  awaiting_part: number;
-  awaiting_approval: number;
-  ready: number;
-  delivered_month: number;
-  revenue_month_cents: number;
+  revenue_cents: number;
+  expenses_cents: number;
+  profit_cents: number;
   receivable_cents: number;
+  pending: number;
+  done: number;
 }
 
 interface RecentOrder {
