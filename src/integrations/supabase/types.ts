@@ -430,8 +430,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_expires_at: string | null
           avatar_url: string | null
+          blocked: boolean
           created_at: string
+          device_id: string | null
           display_name: string | null
           id: string
           skill_level: string
@@ -439,8 +442,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_expires_at?: string | null
           avatar_url?: string | null
+          blocked?: boolean
           created_at?: string
+          device_id?: string | null
           display_name?: string | null
           id: string
           skill_level?: string
@@ -448,8 +454,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_expires_at?: string | null
           avatar_url?: string | null
+          blocked?: boolean
           created_at?: string
+          device_id?: string | null
           display_name?: string | null
           id?: string
           skill_level?: string
