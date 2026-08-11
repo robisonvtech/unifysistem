@@ -48,7 +48,12 @@ export const Route = createFileRoute("/api/admin/users/$id")({
           const body = (await request.json()) as Record<string, unknown>;
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          const updates: Record<string, unknown> = {};
+          const updates: {
+            subscription_status?: string;
+            blocked?: boolean;
+            device_id?: string | null;
+            access_expires_at?: string | null;
+          } = {};
           if (typeof body.subscription_status === "string") updates.subscription_status = body.subscription_status;
           if (typeof body.blocked === "boolean") updates.blocked = body.blocked;
           if (body.reset_device === true) updates.device_id = null;
