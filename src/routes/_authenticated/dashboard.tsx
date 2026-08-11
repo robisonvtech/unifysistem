@@ -10,11 +10,8 @@ import { cn } from "@/lib/utils";
 import {
   ClipboardList,
   Clock,
-  Package,
   CheckCircle2,
-  TrendingUp,
   Plus,
-  AlertCircle,
   ArrowUpRight,
   Sparkles,
   MessageSquare,
