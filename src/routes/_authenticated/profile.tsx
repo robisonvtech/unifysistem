@@ -10,6 +10,7 @@ import { LogOut, Save, Sparkles, Crown, Gem, Sun, Moon, MonitorSmartphone } from
 import { useTheme } from "@/hooks/useTheme";
 import { Badge } from "@/components/ui/badge";
 import { usePlan, type Plan } from "@/hooks/usePlan";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -95,6 +96,8 @@ function ProfilePage() {
 
       <PlanSwitcher />
 
+      <AdminLink />
+
 
 
       <section className="mt-4 space-y-3 premium-card p-5">
@@ -121,6 +124,23 @@ function ProfilePage() {
 
       <p className="mt-6 text-center text-xs text-muted-foreground">Unify RepairAI · v1.0</p>
     </div>
+  );
+}
+
+function AdminLink() {
+  const { canSwitch } = usePlan();
+  if (!canSwitch) return null;
+  return (
+    <Link
+      to="/admin"
+      className="mt-4 flex items-center justify-between rounded-2xl border border-border bg-card p-5 transition hover:border-primary/40"
+    >
+      <div>
+        <div className="text-sm font-semibold">Administração</div>
+        <div className="text-[11px] text-muted-foreground">Criar contas, validade e dispositivos</div>
+      </div>
+      <Crown className="h-5 w-5 text-primary" />
+    </Link>
   );
 }
 

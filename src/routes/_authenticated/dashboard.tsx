@@ -10,11 +10,8 @@ import { cn } from "@/lib/utils";
 import {
   ClipboardList,
   Clock,
-  Package,
   CheckCircle2,
-  TrendingUp,
   Plus,
-  AlertCircle,
   ArrowUpRight,
   Sparkles,
   MessageSquare,
@@ -37,14 +34,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 interface Metrics {
-  open: number;
-  in_repair: number;
-  awaiting_part: number;
-  awaiting_approval: number;
-  ready: number;
-  delivered_month: number;
-  revenue_month_cents: number;
+  revenue_cents: number;
+  expenses_cents: number;
+  profit_cents: number;
   receivable_cents: number;
+  pending: number;
+  done: number;
 }
 
 interface RecentOrder {
@@ -82,9 +77,8 @@ function DashboardPage() {
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      const [{ data: allOrders }, { data: monthOrders }, { data: tx }] = await Promise.all([
+      const [{ data: allOrders }, { data: tx }] = await Promise.all([
         supabase.from("service_orders").select("id, status"),
-        supabase.from("service_orders").select("id, status").gte("created_at", monthStart),
         supabase
           .from("finance_transactions")
           .select("amount_cents, type, status, created_at")
@@ -92,23 +86,20 @@ function DashboardPage() {
       ]);
 
       const list = (allOrders ?? []) as Array<{ status: string }>;
-      const openStatuses: OrderStatus[] = ["awaiting_diagnosis", "awaiting_approval", "in_repair", "awaiting_part"];
-      const income = (tx ?? []).filter((t) => t.type === "income");
+      const openStatuses: OrderStatus[] = ["awaiting_diagnosis", "awaiting_approval", "in_repair", "awaiting_part", "ready"];
+      const rows = tx ?? [];
+      const sum = (t: typeof rows) => t.reduce((s, r) => s + (r.amount_cents ?? 0), 0);
+
+      const revenue = sum(rows.filter((t) => t.type === "income" && t.status === "paid"));
+      const expenses = sum(rows.filter((t) => t.type === "expense" && t.status === "paid"));
 
       setM({
-        open: list.filter((o) => openStatuses.includes(o.status as OrderStatus)).length,
-        in_repair: list.filter((o) => o.status === "in_repair").length,
-        awaiting_part: list.filter((o) => o.status === "awaiting_part").length,
-        awaiting_approval: list.filter((o) => o.status === "awaiting_approval").length,
-        ready: list.filter((o) => o.status === "ready").length,
-        delivered_month: ((monthOrders ?? []) as Array<{ status: string }>).filter((o) => o.status === "delivered")
-          .length,
-        revenue_month_cents: income
-          .filter((t) => t.status === "paid")
-          .reduce((s, t) => s + (t.amount_cents ?? 0), 0),
-        receivable_cents: income
-          .filter((t) => t.status !== "paid")
-          .reduce((s, t) => s + (t.amount_cents ?? 0), 0),
+        revenue_cents: revenue,
+        expenses_cents: expenses,
+        profit_cents: revenue - expenses,
+        receivable_cents: sum(rows.filter((t) => t.type === "income" && t.status !== "paid")),
+        pending: list.filter((o) => openStatuses.includes(o.status as OrderStatus)).length,
+        done: list.filter((o) => o.status === "delivered").length,
       });
 
       const { data: r } = await supabase
@@ -121,12 +112,30 @@ function DashboardPage() {
   }, []);
 
   const kpis = [
-    { label: "OS abertas", value: m?.open ?? "—", icon: ClipboardList, accent: "primary" as const },
-    { label: "Em reparo", value: m?.in_repair ?? "—", icon: Clock, accent: "info" as const },
-    { label: "Aguard. peça", value: m?.awaiting_part ?? "—", icon: Package, accent: "warn" as const },
-    { label: "Aguard. aprov.", value: m?.awaiting_approval ?? "—", icon: AlertCircle, accent: "warn" as const },
-    { label: "Prontos", value: m?.ready ?? "—", icon: CheckCircle2, accent: "success" as const },
-    { label: "Entregues (mês)", value: m?.delivered_month ?? "—", icon: TrendingUp, accent: "primary" as const },
+    {
+      label: "Gastos do mês",
+      value: m ? formatBRL(m.expenses_cents) : "—",
+      icon: Wallet,
+      accent: "warn" as const,
+    },
+    {
+      label: "A receber",
+      value: m ? formatBRL(m.receivable_cents) : "—",
+      icon: Clock,
+      accent: "info" as const,
+    },
+    {
+      label: "Serviços pendentes",
+      value: m?.pending ?? "—",
+      icon: ClipboardList,
+      accent: "primary" as const,
+    },
+    {
+      label: "Serviços concluídos",
+      value: m?.done ?? "—",
+      icon: CheckCircle2,
+      accent: "success" as const,
+    },
   ];
 
   const shortcuts = [
@@ -189,11 +198,11 @@ function DashboardPage() {
           <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
           <div className="relative flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-widest opacity-80">Receita do mês</p>
-              <p className="mt-1 text-3xl font-bold tracking-tight">{m ? formatBRL(m.revenue_month_cents) : "—"}</p>
+              <p className="text-[11px] font-medium uppercase tracking-widest opacity-80">Lucro do mês</p>
+              <p className="mt-1 text-3xl font-bold tracking-tight">{m ? formatBRL(m.profit_cents) : "—"}</p>
               <p className="mt-1 flex items-center gap-1 text-xs opacity-90">
                 <ArrowUpRight className="h-3 w-3" />
-                {m ? formatBRL(m.receivable_cents) : "—"} a receber · {m?.delivered_month ?? 0} entregues
+                {m ? formatBRL(m.revenue_cents) : "—"} recebido · {m ? formatBRL(m.expenses_cents) : "—"} em gastos
               </p>
             </div>
             <Button
