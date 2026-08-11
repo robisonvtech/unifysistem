@@ -201,11 +201,11 @@ function DashboardPage() {
           <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
           <div className="relative flex items-end justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-widest opacity-80">Receita do mês</p>
-              <p className="mt-1 text-3xl font-bold tracking-tight">{m ? formatBRL(m.revenue_month_cents) : "—"}</p>
+              <p className="text-[11px] font-medium uppercase tracking-widest opacity-80">Lucro do mês</p>
+              <p className="mt-1 text-3xl font-bold tracking-tight">{m ? formatBRL(m.profit_cents) : "—"}</p>
               <p className="mt-1 flex items-center gap-1 text-xs opacity-90">
                 <ArrowUpRight className="h-3 w-3" />
-                {m ? formatBRL(m.receivable_cents) : "—"} a receber · {m?.delivered_month ?? 0} entregues
+                {m ? formatBRL(m.revenue_cents) : "—"} recebido · {m ? formatBRL(m.expenses_cents) : "—"} em gastos
               </p>
             </div>
             <Button
