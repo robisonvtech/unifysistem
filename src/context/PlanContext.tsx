@@ -38,8 +38,8 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const apply = () => {
-      const stored = getStoredTheme();
-      applyTheme(stored ? stored === "dark" : plan === "elite");
+      // Light is the default; dark only when the user explicitly chooses it.
+      applyTheme(getStoredTheme() === "dark");
     };
     apply();
     window.addEventListener("unify:theme-change", apply);

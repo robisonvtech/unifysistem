@@ -36,7 +36,7 @@ export function readAIConfig(): AIConfig {
     maxTokens: num(process.env["MAX_TOKENS"], 4096),
     timeoutMs: num(process.env["AI_TIMEOUT_MS"], 120_000),
     maxRetries: num(process.env["AI_MAX_RETRIES"], 2),
-    contextWindowMessages: num(process.env["AI_CONTEXT_MESSAGES"], 24),
+    contextWindowMessages: num(process.env["AI_CONTEXT_MESSAGES"], 200),
     cacheTtlMs: num(process.env["AI_CACHE_TTL_MS"], 60_000),
   };
 }
