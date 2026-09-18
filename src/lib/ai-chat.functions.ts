@@ -27,10 +27,10 @@ export const sendChat = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => {
     const d = input as ChatInput;
     if (!d || !Array.isArray(d.messages)) throw new Error("Requisição inválida.");
-    if (d.messages.length === 0 || d.messages.length > 80) throw new Error("Conversa muito longa.");
+    if (d.messages.length === 0 || d.messages.length > 1000) throw new Error("Conversa muito longa.");
     for (const m of d.messages) {
       if (m.role !== "user" && m.role !== "assistant") throw new Error("Papel inválido.");
-      if (typeof m.content !== "string" || m.content.length > 12000) throw new Error("Mensagem muito longa.");
+      if (typeof m.content !== "string" || m.content.length > 100000) throw new Error("Mensagem muito longa.");
       if (m.attachments && m.attachments.length > 6) throw new Error("Máximo de 6 anexos.");
     }
     const skill = d.skillLevel ?? "auto";

@@ -50,8 +50,7 @@ export function usePlan(): PlanTheme {
     const root = document.documentElement;
     root.setAttribute("data-plan", plan);
     const apply = () => {
-      const stored = getStoredTheme();
-      applyTheme(stored ? stored === "dark" : plan === "elite");
+      applyTheme(getStoredTheme() === "dark");
     };
     apply();
     window.addEventListener("unify:theme-change", apply);

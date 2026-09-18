@@ -36,10 +36,12 @@ export interface GatewayOptions {
 
 /* ------------------------------- rate limit ------------------------------ */
 
-const RATE_LIMIT_MAX = Number(process.env["AI_RATE_LIMIT_PER_MIN"] ?? 20);
+/** 0 (default) = unlimited. The app uses your own OpenAI key, so no app-side cap. */
+const RATE_LIMIT_MAX = Number(process.env["AI_RATE_LIMIT_PER_MIN"] ?? 0);
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 export function checkRateLimit(key: string) {
+  if (!Number.isFinite(RATE_LIMIT_MAX) || RATE_LIMIT_MAX <= 0) return;
   const now = Date.now();
   const bucket = buckets.get(key);
   if (!bucket || bucket.resetAt < now) {
