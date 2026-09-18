@@ -41,12 +41,12 @@ export const Route = createFileRoute("/api/ai/chat")({
         }
 
         const incoming = body.messages;
-        if (!Array.isArray(incoming) || incoming.length === 0 || incoming.length > 80) {
+        if (!Array.isArray(incoming) || incoming.length === 0 || incoming.length > 1000) {
           return new Response("Requisição inválida.", { status: 400 });
         }
         for (const m of incoming) {
           if (m.role !== "user" && m.role !== "assistant") return new Response("Papel inválido.", { status: 400 });
-          if (typeof m.content !== "string" || m.content.length > 12000) {
+          if (typeof m.content !== "string" || m.content.length > 100000) {
             return new Response("Mensagem muito longa.", { status: 400 });
           }
           if (m.attachments && m.attachments.length > 6) return new Response("Máximo de 6 anexos.", { status: 400 });
