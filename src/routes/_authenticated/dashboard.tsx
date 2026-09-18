@@ -111,33 +111,6 @@ function DashboardPage() {
     })();
   }, []);
 
-  const kpis = [
-    {
-      label: "Gastos do mês",
-      value: m ? formatBRL(m.expenses_cents) : "—",
-      icon: Wallet,
-      accent: "warn" as const,
-    },
-    {
-      label: "A receber",
-      value: m ? formatBRL(m.receivable_cents) : "—",
-      icon: Clock,
-      accent: "info" as const,
-    },
-    {
-      label: "Serviços pendentes",
-      value: m?.pending ?? "—",
-      icon: ClipboardList,
-      accent: "primary" as const,
-    },
-    {
-      label: "Serviços concluídos",
-      value: m?.done ?? "—",
-      icon: CheckCircle2,
-      accent: "success" as const,
-    },
-  ];
-
   const shortcuts = [
     { to: "/chat" as const, label: "Diagnóstico IA", icon: MessageSquare },
     { to: "/orders/new" as const, label: "Nova OS", icon: Plus },
